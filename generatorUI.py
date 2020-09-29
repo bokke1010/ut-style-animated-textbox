@@ -33,14 +33,29 @@ optionHeader = tk.Label(optionFrame, text="Textbox Options:")
 
 # Text color
 colorLabel = tk.Label(optionFrame, text= "RGB color (0-255)")
-
 colorBox = tk.Frame(optionFrame)
-colorRed = tk.Entry(colorBox, width = 3, bg = "red", bd = 3, relief = "flat")
-colorRed.insert(tk.END, "255")
-colorGreen = tk.Entry(colorBox, width = 3, bg = "green", bd = 3, relief = "flat")
-colorGreen.insert(tk.END, "255")
-colorBlue = tk.Entry(colorBox, width = 3, bg = "blue", bd = 3, relief = "flat")
-colorBlue.insert(tk.END, "255")
+
+colorRed = tk.StringVar(root, name = "RGB_red", value = 255)
+colorRedEntry = tk.Entry(colorBox, textvariable = colorRed, width = 3, bg = "red", bd = 3, relief = "flat")
+
+colorGreen = tk.StringVar(root, name = "RGB_green", value = 255)
+colorGreenEntry = tk.Entry(colorBox, textvariable = colorGreen, width = 3, bg = "green", bd = 3, relief = "flat")
+
+colorBlue = tk.StringVar(root, name = "RGB_blue", value = 255)
+colorBlueEntry = tk.Entry(colorBox, textvariable = colorBlue, width = 3, bg = "blue", bd = 3, relief = "flat")
+
+def validateColorInput(name, *args):
+	colorVar = root.globalgetvar(name)
+	if not (colorVar.isdigit() and (0 <= int(colorVar) <= 255)):
+		root.globalsetvar(name, "255")
+	textEntry.configure(fg = RGBtoHex(colorRed.get(), colorGreen.get(), colorBlue.get()))
+
+def RGBtoHex(r, g, b):
+	return f"#{int(r):02x}{int(g):02x}{int(b):02x}"
+
+colorRed.trace("w", validateColorInput)
+colorGreen.trace("w", validateColorInput)
+colorBlue.trace("w", validateColorInput)
 
 # Frame delay
 frametimeLabel = tk.Label(optionFrame, text="Frame delay in milliseconds:")
@@ -91,7 +106,6 @@ contentFrame = tk.Frame(root)
 contentHeader = tk.Label(contentFrame, text="Textbox content:")
 
 # Textbox text
-content = ""
 def createFunction():
 	dialogueGenerator.portraitInterval = int(portraitDelayEntry.get())
 	dialogueGenerator.color = (int(colorRed.get()), int(colorGreen.get()), int(colorBlue.get()))
@@ -217,9 +231,9 @@ optionHeader.grid(row = 0)
 # Text color
 colorLabel.grid(row=1)
 colorBox.grid(row=2)
-colorRed.grid(row = 0, column = 0)
-colorGreen.grid(row = 0, column = 1)
-colorBlue.grid(row = 0, column = 2)
+colorRedEntry.grid(row = 0, column = 0)
+colorGreenEntry.grid(row = 0, column = 1)
+colorBlueEntry.grid(row = 0, column = 2)
 
 # Frame delay
 frametimeLabel.grid(row = 3)
