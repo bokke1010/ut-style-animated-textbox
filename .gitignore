@@ -1,0 +1,14 @@
+.git/
+.env.txt
+
+__pycache__/
+
+requirements.txt
+boty.py
+
+faces/
+fonts/
+sheets/
+offlineDist/
+offlineDist.zip
+outputDialogue.gif
