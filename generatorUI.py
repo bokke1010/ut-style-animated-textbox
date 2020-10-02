@@ -13,9 +13,9 @@ import dialogueGenerator
 print("dialogue generator imported correctly")
 
 #TODO:
-# font data maybe?
-# Split image path into seperate boxes with a note that the frame number is not required
-# Checkbox for auto-open
+# Add live image preview
+# font data and choose font
+
 
 
 root = tk.Tk()
@@ -40,7 +40,7 @@ colorLabel = tk.Label(optionFrame, text= "RGB color (0-255)")
 colorBox = tk.Frame(optionFrame)
 
 # Define text entry because order sadly matters
-textEntry = tk.Text(contentFrame, height=4, width=30, bg = "black", fg = "white", relief = "raised", bd = 5)
+textEntry = tk.Text(contentFrame, height=4, width=30, bg = "black", fg = "white", relief = "raised", bd = 5, insertbackground = "white")
 
 def RGBtoHex(r, g, b):
 	return f"#{int(r):02x}{int(g):02x}{int(b):02x}"

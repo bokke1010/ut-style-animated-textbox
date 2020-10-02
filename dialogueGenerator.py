@@ -21,9 +21,6 @@ yoffset = 28
 
 portraitInterval = 4
 
-# TODO:
-# Seperate frame delay and text delay
-
 def create(text, universe, name, expression):
 
 	# Background image
