@@ -31,37 +31,61 @@ appHeader = tk.Label(root, text="Simple animated textbox UI")
 optionFrame = tk.Frame(root)
 optionHeader = tk.Label(optionFrame, text="Textbox Options:")
 
+# Left side, reserved for box content
+contentFrame = tk.Frame(root)
+contentHeader = tk.Label(contentFrame, text="Textbox content:")
+
 # Text color
 colorLabel = tk.Label(optionFrame, text= "RGB color (0-255)")
 colorBox = tk.Frame(optionFrame)
 
-colorRed = tk.StringVar(root, name = "RGB_red", value = 255)
-colorRedEntry = tk.Entry(colorBox, textvariable = colorRed, width = 3, bg = "red", bd = 3, relief = "flat")
-
-colorGreen = tk.StringVar(root, name = "RGB_green", value = 255)
-colorGreenEntry = tk.Entry(colorBox, textvariable = colorGreen, width = 3, bg = "green", bd = 3, relief = "flat")
-
-colorBlue = tk.StringVar(root, name = "RGB_blue", value = 255)
-colorBlueEntry = tk.Entry(colorBox, textvariable = colorBlue, width = 3, bg = "blue", bd = 3, relief = "flat")
-
-def validateColorInput(name, *args):
-	colorVar = root.globalgetvar(name)
-	if not (colorVar.isdigit() and (0 <= int(colorVar) <= 255)):
-		root.globalsetvar(name, "255")
-	textEntry.configure(fg = RGBtoHex(colorRed.get(), colorGreen.get(), colorBlue.get()))
+# Define text entry because order sadly matters
+textEntry = tk.Text(contentFrame, height=4, width=30, bg = "black", fg = "white", relief = "raised", bd = 5)
 
 def RGBtoHex(r, g, b):
 	return f"#{int(r):02x}{int(g):02x}{int(b):02x}"
 
-colorRed.trace("w", validateColorInput)
-colorGreen.trace("w", validateColorInput)
-colorBlue.trace("w", validateColorInput)
+def validateColor(val):
+	if val.isdigit() and 0 <= int(val) <= 255:
+		textEntry.configure(fg = RGBtoHex(colorRed.get(), colorGreen.get(), colorBlue.get()))
+		return True
+	return False
+
+colorValidator = root.register(validateColor)
+
+colorRed = tk.StringVar(root, name = "RGB_red", value = 255)
+colorRedEntry = tk.Entry(colorBox, textvariable = colorRed, width = 3, bg = "red", bd = 3, relief = "flat", validate = "key", validatecommand = (colorValidator, "%P"))
+
+colorGreen = tk.StringVar(root, name = "RGB_green", value = 255)
+colorGreenEntry = tk.Entry(colorBox, textvariable = colorGreen, width = 3, bg = "green", bd = 3, relief = "flat", validate = "key", validatecommand = (colorValidator, "%P"))
+
+colorBlue = tk.StringVar(root, name = "RGB_blue", value = 255)
+colorBlueEntry = tk.Entry(colorBox, textvariable = colorBlue, width = 3, bg = "blue", bd = 3, relief = "flat", validate = "key", validatecommand = (colorValidator, "%P"))
+
+# Offset
+
+def validateInteger(val):
+	if val.isdigit():
+		return True
+	return False
+
+intValidator = root.register(validateInteger)
+
+textOffsetLabel = tk.Label(optionFrame, text="Text offset (x, y):")
+textOffsetBox = tk.Frame(optionFrame)
+
+textOffsetx = tk.StringVar(value = dialogueGenerator.xoffset)
+textOffsetxEntry = tk.Entry(textOffsetBox, textvariable = textOffsetx, width=3, validate = "key", validatecommand = (intValidator, "%P"))
+
+textOffsety = tk.StringVar(value = dialogueGenerator.yoffset)
+textOffsetyEntry = tk.Entry(textOffsetBox, textvariable = textOffsety, width=3, validate = "key", validatecommand = (intValidator, "%P"))
 
 # Frame delay
 frametimeLabel = tk.Label(optionFrame, text="Frame delay in milliseconds:")
 frametimeEntry = tk.Entry(optionFrame, width=3)
 frametimeEntry.insert(tk.END, "40")
 
+# Character delay
 framepercharLabel = tk.Label(optionFrame, text="Number of frames for each character:")
 framepercharEntry = tk.Entry(optionFrame, width=3)
 framepercharEntry.insert(tk.END, "1")
@@ -101,15 +125,15 @@ portraitDelayLabel = tk.Label(optionFrame, text="Number of frames for portrait a
 portraitDelayEntry = tk.Entry(optionFrame, width=2)
 portraitDelayEntry.insert(tk.END, "4")
 
-# Left side, reserved for box content
-contentFrame = tk.Frame(root)
-contentHeader = tk.Label(contentFrame, text="Textbox content:")
-
 # Textbox text
 def createFunction():
 	dialogueGenerator.portraitInterval = int(portraitDelayEntry.get())
 	dialogueGenerator.color = (int(colorRed.get()), int(colorGreen.get()), int(colorBlue.get()))
 	dialogueGenerator.frametime = int(frametimeEntry.get())
+
+	dialogueGenerator.xoffset = int(textOffsetx.get())
+	dialogueGenerator.yoffset = int(textOffsety.get())
+
 	textboxcontent = textEntry.get("1.0", "4.40")
 	expression = None
 
@@ -125,8 +149,6 @@ def createFunction():
 			system("open outputDialogue.gif")
 		else: # Linux?
 			system("xdg-open outputDialogue.gif")
-
-textEntry = tk.Text(contentFrame, height=4, width=30, bg = "black", fg = "white", relief = "raised", bd = 5)
 
 # Use portrait checkbox
 def setPathActiveFunction(*args):
@@ -229,23 +251,29 @@ optionFrame.grid(row=1, column=1)
 optionHeader.grid(row = 0)
 
 # Text color
-colorLabel.grid(row=1)
-colorBox.grid(row=2)
+colorLabel.grid(row = 1)
+colorBox.grid(row = 2)
 colorRedEntry.grid(row = 0, column = 0)
 colorGreenEntry.grid(row = 0, column = 1)
 colorBlueEntry.grid(row = 0, column = 2)
 
+textOffsetLabel.grid(row = 3, column = 0)
+textOffsetBox.grid(row = 4, column = 0)
+textOffsetxEntry.grid(row = 0, column = 0)
+textOffsetyEntry.grid(row = 0, column = 1)
+
+
 # Frame delay
-frametimeLabel.grid(row = 3)
-frametimeEntry.grid(row = 4)
+frametimeLabel.grid(row = 5)
+frametimeEntry.grid(row = 6)
 
 # character delays
-framepercharLabel.grid(row=5)
-framepercharEntry.grid(row=6)
+framepercharLabel.grid(row = 7)
+framepercharEntry.grid(row = 8)
 
 # Special character delays
-charDelayLabel.grid(row = 7)
-charDelayBox.grid(row = 8)
+charDelayLabel.grid(row = 9)
+charDelayBox.grid(row = 10)
 
 charDelaySelectEntry.grid(row = 0, column = 1)
 charDelayJoin.grid(row = 0, column = 2)
@@ -253,11 +281,11 @@ charDelayValueEntry.grid(row = 0, column = 3)
 setCharDelayButton.grid(row = 0, column = 4)
 
 # Show current special characters
-charDelayDefaultMessage.grid(row = 9, column = 0)
+charDelayDefaultMessage.grid(row = 11, column = 0)
 
 # Portrait delay
-portraitDelayLabel.grid(row = 10)
-portraitDelayEntry.grid(row = 11)
+portraitDelayLabel.grid(row = 12)
+portraitDelayEntry.grid(row = 13)
 
 # Textbox content
 contentFrame.grid(row=1, column = 0)

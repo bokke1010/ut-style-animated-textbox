@@ -16,6 +16,8 @@ delays = {
 }
 
 color = (255, 255, 255, 255)
+xoffset = 15
+yoffset = 28
 
 portraitInterval = 4
 
@@ -51,8 +53,8 @@ def create(text, universe, name, expression):
 		textFrame = bgImage.copy()
 
 		# Draw text
-		dx = 28 + (118 if expression != None else 0)
-		dy = 15
+		dx = xoffset + (118 if expression != None else 0)
+		dy = yoffset
 		draw = ImageDraw.Draw(textFrame)
 		draw.multiline_text((dx + charfont["dx"], dy + charfont["dy"]), text[:i+1], font = font, fill = color)
 
