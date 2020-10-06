@@ -7,6 +7,7 @@ from sys import platform
 
 import tkinter as tk
 from tkinter import ttk
+from tkinter import colorchooser
 print("tkinter imported correctly")
 
 import dialogueGenerator
@@ -15,13 +16,12 @@ print("dialogue generator imported correctly")
 #TODO:
 # Add live image preview
 # font data and choose font
-
+# Custom file names
 
 
 root = tk.Tk()
 root.title("Animated textbox generator")
 root.iconbitmap("icon.ico")
-# root.geometry("800x400")
 print("tkinter window created")
 
 # Creating the headers
@@ -35,35 +35,18 @@ optionHeader = tk.Label(optionFrame, text="Textbox Options:")
 contentFrame = tk.Frame(root)
 contentHeader = tk.Label(contentFrame, text="Textbox content:")
 
-# Text color
-colorLabel = tk.Label(optionFrame, text= "RGB color (0-255)")
-colorBox = tk.Frame(optionFrame)
-
 # Define text entry because order sadly matters
 textEntry = tk.Text(contentFrame, height=4, width=30, bg = "black", fg = "white", relief = "raised", bd = 5, insertbackground = "white")
 
-def RGBtoHex(r, g, b):
-	return f"#{int(r):02x}{int(g):02x}{int(b):02x}"
+# Text color
+def textColor():
+	colorRGB, colorHex = tk.colorchooser.askcolor(initialcolor = "#ffffff", parent = optionFrame, title="Pick your text color")
+	textEntry.config(fg = colorHex)
+	dialogueGenerator.color = (int(colorRGB[0]), int(colorRGB[1]), int(colorRGB[2]))
 
-def validateColor(val):
-	if val.isdigit() and 0 <= int(val) <= 255:
-		textEntry.configure(fg = RGBtoHex(colorRed.get(), colorGreen.get(), colorBlue.get()))
-		return True
-	return False
-
-colorValidator = root.register(validateColor)
-
-colorRed = tk.StringVar(root, name = "RGB_red", value = 255)
-colorRedEntry = tk.Entry(colorBox, textvariable = colorRed, width = 3, bg = "red", bd = 3, relief = "flat", validate = "key", validatecommand = (colorValidator, "%P"))
-
-colorGreen = tk.StringVar(root, name = "RGB_green", value = 255)
-colorGreenEntry = tk.Entry(colorBox, textvariable = colorGreen, width = 3, bg = "green", bd = 3, relief = "flat", validate = "key", validatecommand = (colorValidator, "%P"))
-
-colorBlue = tk.StringVar(root, name = "RGB_blue", value = 255)
-colorBlueEntry = tk.Entry(colorBox, textvariable = colorBlue, width = 3, bg = "blue", bd = 3, relief = "flat", validate = "key", validatecommand = (colorValidator, "%P"))
+colorButton = tk.Button(optionFrame, text= "Pick color", command = textColor)
 
 # Offset
-
 def validateInteger(val):
 	if val.isdigit():
 		return True
@@ -128,8 +111,10 @@ portraitDelayEntry.insert(tk.END, "4")
 # Textbox text
 def createFunction():
 	dialogueGenerator.portraitInterval = int(portraitDelayEntry.get())
-	dialogueGenerator.color = (int(colorRed.get()), int(colorGreen.get()), int(colorBlue.get()))
 	dialogueGenerator.frametime = int(frametimeEntry.get())
+
+	filename = fileNameEntry.get()
+	dialogueGenerator.filename = filename
 
 	dialogueGenerator.xoffset = int(textOffsetx.get())
 	dialogueGenerator.yoffset = int(textOffsety.get())
@@ -144,11 +129,11 @@ def createFunction():
 
 	if (autoOpenVar.get() == 1):
 		if platform == "win32": # Only windows was tested
-			system("start outputDialogue.gif")
+			system(f"start {filename}.gif")
 		elif platform == "darwin": # Mac OS?
-			system("open outputDialogue.gif")
+			system(f"open {filename}.gif")
 		else: # Linux?
-			system("xdg-open outputDialogue.gif")
+			system(f"xdg-open {filename}.gif")
 
 # Use portrait checkbox
 def setPathActiveFunction(*args):
@@ -238,6 +223,11 @@ pathUniverse.set("ut")
 autoOpenVar = tk.IntVar()
 autoOpenCheckbox = tk.Checkbutton(contentFrame, text="auto open gif", variable = autoOpenVar)
 
+# Custom file name
+fileNameLabel = tk.Label(contentFrame, text = "File name")
+fileNameEntry = tk.Entry(contentFrame)
+fileNameEntry.insert(0, "outputDialogue")
+
 # Creation button
 createAnimation = tk.Button(contentFrame, text= "Create!", command = createFunction, pady = 5, padx = 15, bg = "black", fg = "gold")
 
@@ -251,11 +241,7 @@ optionFrame.grid(row=1, column=1)
 optionHeader.grid(row = 0)
 
 # Text color
-colorLabel.grid(row = 1)
-colorBox.grid(row = 2)
-colorRedEntry.grid(row = 0, column = 0)
-colorGreenEntry.grid(row = 0, column = 1)
-colorBlueEntry.grid(row = 0, column = 2)
+colorButton.grid(row = 1)
 
 textOffsetLabel.grid(row = 3, column = 0)
 textOffsetBox.grid(row = 4, column = 0)
@@ -313,8 +299,12 @@ pathInline4.grid(row = 0, column = 6)
 # Auto-open checkbox
 autoOpenCheckbox.grid(row = 6, column = 0)
 
+# File name
+fileNameLabel.grid(row = 7, column = 0)
+fileNameEntry.grid(row = 8, column = 0)
+
 # Create button
-createAnimation.grid(row = 7)
+createAnimation.grid(row = 9)
 
 print("elements in grid")
 

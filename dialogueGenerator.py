@@ -19,6 +19,8 @@ color = (255, 255, 255, 255)
 xoffset = 15
 yoffset = 28
 
+filename = "outputDialogue"
+
 portraitInterval = 4
 
 def create(text, universe, name, expression):
@@ -74,4 +76,4 @@ def create(text, universe, name, expression):
 				frames.append(textFrame)
 
 	# Save animation
-	frames[0].save("outputDialogue.gif", save_all = True, append_images = frames[1:], duration = frametime)
+	frames[0].save(filename + ".gif", save_all = True, append_images = frames[1:], duration = frametime)
