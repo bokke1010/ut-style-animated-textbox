@@ -16,7 +16,6 @@ print("dialogue generator imported correctly")
 #TODO:
 # Add live image preview
 # font data and choose font
-# Custom file names
 
 
 root = tk.Tk()

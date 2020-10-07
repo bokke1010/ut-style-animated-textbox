@@ -16,8 +16,8 @@ delays = {
 }
 
 color = (255, 255, 255, 255)
-xoffset = 15
-yoffset = 28
+xoffset = 28
+yoffset = 15
 
 filename = "outputDialogue"
 
