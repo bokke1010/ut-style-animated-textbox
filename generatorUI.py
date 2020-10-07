@@ -40,11 +40,8 @@ optionHeader = tk.Label(optionFrame, text="Textbox Options:")
 fontFrame = tk.Frame(root)
 fontHeader = tk.Label(contentFrame, text="Font stuffs:")
 
-# Define text entry
-textEntry = tk.Text(contentFrame, height=4, width=30, bg = "black", fg = "white", relief = "raised", bd = 5, insertbackground = "white")
-
 #-------------------------------------------------------------------------------
-# Textbox text
+# Define text entry
 def createFunction():
 	dialogueGenerator.portraitInterval = int(portraitDelayEntry.get())
 	dialogueGenerator.frametime = int(frametimeEntry.get())
@@ -61,7 +58,7 @@ def createFunction():
 	if useImageVar.get() == 1:
 		expression = pathExpression.get()
 
-	dialogueGenerator.create(textboxcontent, pathUniverse.get(), pathCharacter.get(), expression)
+	dialogueGenerator.create(textboxcontent, pathUniverse.get(), pathCharacter.get(), expression, fontSelector.get())
 
 	if (autoOpenVar.get() == 1):
 		if platform == "win32": # Only windows was tested
@@ -70,6 +67,17 @@ def createFunction():
 			system(f"open {filename}.gif")
 		else: # Linux?
 			system(f"xdg-open {filename}.gif")
+
+textEntry = tk.Text(contentFrame, height=4, width=30, bg = "black", fg = "white", relief = "raised", bd = 5, insertbackground = "white")
+
+# Font selector
+def getFontOptions():
+	return list(dialogueGenerator.fonts.keys())
+
+fontSelectorOptions = getFontOptions()
+fontSelector = tk.StringVar()
+fontSelectorLabel = tk.Label(contentFrame, text = "Font:")
+fontSelectorDropdown = ttk.OptionMenu(contentFrame, fontSelector, fontSelectorOptions[0], *fontSelectorOptions)
 
 # Use portrait checkbox
 def setPathActiveFunction(*args):
@@ -135,9 +143,9 @@ def setpe(*args):
 
 pathInline1 = tk.Label(pathBox, text = "faces/")
 
-pathUnivereOptions = getpu()
+pathUniverseOptions = getpu()
 pathUniverse = tk.StringVar()
-pathUniverseDropdown = ttk.OptionMenu(pathBox, pathUniverse, pathUnivereOptions[0], *pathUnivereOptions)
+pathUniverseDropdown = ttk.OptionMenu(pathBox, pathUniverse, pathUniverseOptions[0], *pathUniverseOptions)
 
 pathInline2 = tk.Label(pathBox, text = "/")
 
@@ -341,12 +349,16 @@ contentHeader.grid(row = 0)
 useImageVar.set(1)
 textEntry.grid(row=1, column = 0)
 
+# Font selector dropdown
+fontSelectorLabel.grid(row=2, column = 0)
+fontSelectorDropdown.grid(row=3, column = 0)
+
 # Sprite present checkbox
-useImageCheckbox.grid(row = 2, column = 0)
+useImageCheckbox.grid(row = 4, column = 0)
 
 # Sprite select field
-pathRequirementMessage.grid(row = 4, column = 0)
-pathBox.grid(row = 5, column = 0)
+pathRequirementMessage.grid(row = 5, column = 0)
+pathBox.grid(row = 6, column = 0)
 
 pathInline1.grid(row = 0, column = 0)
 pathUniverseDropdown.grid(row = 0, column = 1)
@@ -357,14 +369,14 @@ pathExpressionDropdown.grid(row = 0, column = 5)
 pathInline4.grid(row = 0, column = 6)
 
 # Auto-open checkbox
-autoOpenCheckbox.grid(row = 6, column = 0)
+autoOpenCheckbox.grid(row = 7, column = 0)
 
 # File name
-fileNameLabel.grid(row = 7, column = 0)
-fileNameEntry.grid(row = 8, column = 0)
+fileNameLabel.grid(row = 8, column = 0)
+fileNameEntry.grid(row = 9, column = 0)
 
 # Create button
-createAnimation.grid(row = 9)
+createAnimation.grid(row = 10)
 
 # Font stuffs
 fontFrame.grid(row = 1, column = 2)
