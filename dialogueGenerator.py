@@ -8,18 +8,19 @@ import json
 fonts = {}
 
 def loadFontData():
-	with open("fontData.json", "r") as fontData:
-		loadeddata = json.load(fontData)
-		for filename in listdir("fonts/"):
-			# No unsplitable names
-			# Only valid font files
-			if not filename[-4:] in (".otf", ".ttf"):
-				continue
+	loadeddata = {}
+	if path.isfile("fontData.json"):
+		with open("fontData.json", "r") as fontData:
+			loadeddata = json.load(fontData)
+	for filename in listdir("fonts/"):
+		# Only valid font files
+		if not filename[-4:] in (".otf", ".ttf"):
+			continue
 
-			if filename in loadeddata:
-				fonts[filename] = loadeddata[filename]
-			else:
-				fonts[filename] = {"dx": 0, "dy":0, "size":27}
+		if filename in loadeddata:
+			fonts[filename] = loadeddata[filename]
+		else:
+			fonts[filename] = {"dx": 0, "dy":0, "size":27}
 
 loadFontData()
 
