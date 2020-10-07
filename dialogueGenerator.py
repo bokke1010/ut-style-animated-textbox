@@ -1,11 +1,27 @@
 from PIL import Image, ImageDraw, ImageFont
 from os import path
+from os import listdir
+import json
 
-fonts = {
-	"default"           : {"dx": 0, "dy":0, "size":27, "ext": "otf", "font": "default"},
-	"sans"              : {"dx": 0, "dy":0, "size":32, "ext": "ttf", "font": "sans"},
-	"papyrus"           : {"dx": 0, "dy":3, "size":32, "ext": "ttf", "font": "papyrus"},
-}
+
+#TODO: Load from available fonts & file
+fonts = {}
+
+def loadFontData():
+	with open("fontData.json", "r") as fontData:
+		loadeddata = json.load(fontData)
+		for filename in listdir("fonts/"):
+			# No unsplitable names
+			# Only valid font files
+			if not filename[-4:] in (".otf", ".ttf"):
+				continue
+
+			if filename in loadeddata:
+				fonts[filename] = loadeddata[filename]
+			else:
+				fonts[filename] = {"dx": 0, "dy":0, "size":27}
+
+loadFontData()
 
 frametime = 40
 chardelay = 1
@@ -19,11 +35,11 @@ color = (255, 255, 255, 255)
 xoffset = 28
 yoffset = 15
 
-filename = "outputDialogue"
+outputFileName = "outputDialogue"
 
 portraitInterval = 4
 
-def create(text, universe, name, expression):
+def create(text, universe, name, expression, fontname = "default.otf"):
 
 	# Background image
 	bgImage = Image.open("dialogue_box.png").convert("RGBA")
@@ -39,11 +55,8 @@ def create(text, universe, name, expression):
 		facecount -= 1
 
 	# Get fonts
-	charfont = fonts[name] if name in fonts else fonts["default"]
-	fontname = "fonts/" + charfont["font"] + "." + charfont["ext"]
-	if not path.exists(fontname):
-		fontname = "fonts/default.otf"
-	font = ImageFont.truetype(fontname, charfont["size"])
+	charfont = fonts[fontname]
+	font = ImageFont.truetype("fonts/" + fontname, charfont["size"])
 
 	# Create frames
 	frames = []
@@ -76,4 +89,4 @@ def create(text, universe, name, expression):
 				frames.append(textFrame)
 
 	# Save animation
-	frames[0].save(filename + ".gif", save_all = True, append_images = frames[1:], duration = frametime)
+	frames[0].save(outputFileName + ".gif", save_all = True, append_images = frames[1:], duration = frametime)
