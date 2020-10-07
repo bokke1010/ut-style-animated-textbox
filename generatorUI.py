@@ -17,7 +17,7 @@ print("dialogue generator imported correctly")
 
 #TODO:
 # Add live image preview
-# font data and choose font
+# Add offset preview
 
 
 root = tk.Tk()
@@ -38,7 +38,7 @@ optionHeader = tk.Label(optionFrame, text="Textbox Options:")
 
 # Right side, for font stuffs
 fontFrame = tk.Frame(root)
-fontHeader = tk.Label(contentFrame, text="Font stuffs:")
+fontHeader = tk.Label(fontFrame, text="Font stuffs:")
 
 #-------------------------------------------------------------------------------
 # Define text entry
