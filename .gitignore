@@ -9,7 +9,8 @@ boty.py
 faces/
 fonts/
 sheets/
-offlineDist/
+package/
 offlineDist.zip
 *.gif
 test.py
+portrait.png

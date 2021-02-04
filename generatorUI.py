@@ -10,6 +10,9 @@ import json
 import tkinter as tk
 from tkinter import ttk
 from tkinter import colorchooser
+
+from PIL import ImageTk
+from PIL import Image
 print("tkinter imported correctly")
 
 import dialogueGenerator
@@ -41,6 +44,15 @@ fontFrame = tk.Frame(root)
 fontHeader = tk.Label(fontFrame, text="Font stuffs:")
 
 #-------------------------------------------------------------------------------
+# Variable declaration - for future stuffs
+
+useImageVar = tk.IntVar(value=1)
+
+pathUniverse = tk.StringVar()
+pathCharacter = tk.StringVar()
+pathExpression = tk.StringVar()
+
+#-------------------------------------------------------------------------------
 # Define text entry
 def createFunction():
 	dialogueGenerator.portraitInterval = int(portraitDelayEntry.get())
@@ -49,8 +61,10 @@ def createFunction():
 	filename = fileNameEntry.get()
 	dialogueGenerator.outputFileName = filename
 
-	dialogueGenerator.xoffset = int(textOffsetx.get())
-	dialogueGenerator.yoffset = int(textOffsety.get())
+	threeLineOffset = (0, 10) if threeLineVar.get() == 1 else (0, 0)
+
+	dialogueGenerator.xoffset = int(textOffsetx.get()) + threeLineOffset[0]
+	dialogueGenerator.yoffset = int(textOffsety.get()) + threeLineOffset[1]
 
 	textboxcontent = textEntry.get("1.0", "4.40")
 	expression = None
@@ -58,7 +72,7 @@ def createFunction():
 	if useImageVar.get() == 1:
 		expression = pathExpression.get()
 
-	dialogueGenerator.create(textboxcontent, pathUniverse.get(), pathCharacter.get(), expression, fontSelector.get())
+	dialogueGenerator.create(textboxcontent, pathUniverse.get(), pathCharacter.get(), expression, fontSelector.get(), bgSelector.get())
 
 	if (autoOpenVar.get() == 1):
 		if platform == "win32": # Only windows was tested
@@ -68,7 +82,23 @@ def createFunction():
 		else: # Linux?
 			system(f"xdg-open {filename}.gif")
 
-textEntry = tk.Text(contentFrame, height=4, width=30, bg = "black", fg = "white", relief = "raised", bd = 5, insertbackground = "white")
+# Visual entry environment
+entryFrame = tk.Frame(contentFrame, bg = "black", relief = "raised", bd = 5)
+
+# Portrait preview comes after path initialization
+# Portrait functions can be defined here though
+def getPortraitImg():
+	if useImageVar.get() == 1:
+		universe, name, expression = pathUniverse.get(), pathCharacter.get(), pathExpression.get()
+		if path.exists(facepath := path.join("faces", universe, name, expression + "1.png")):
+			return ImageTk.PhotoImage(Image.open(facepath))
+	print("Portrait image not loaded.")
+
+textEntry = tk.Text(entryFrame, height=4, width=30, bg = "black", fg = "white", relief = "flat", bd = 0, insertbackground = "white")
+
+
+
+assetMenu = tk.Frame(contentFrame)
 
 # Font selector
 def getFontOptions():
@@ -76,8 +106,9 @@ def getFontOptions():
 
 fontSelectorOptions = getFontOptions()
 fontSelector = tk.StringVar()
-fontSelectorLabel = tk.Label(contentFrame, text = "Font:")
-fontSelectorDropdown = ttk.OptionMenu(contentFrame, fontSelector, fontSelectorOptions[0], *fontSelectorOptions)
+fontSelectorLabel = tk.Label(assetMenu, text = "Font:")
+fontSelectorDropdown = ttk.OptionMenu(assetMenu, fontSelector, fontSelectorOptions[0], *fontSelectorOptions)
+
 
 # Use portrait checkbox
 def setPathActiveFunction(*args):
@@ -86,15 +117,34 @@ def setPathActiveFunction(*args):
 		pathInline3.configure(state="disabled")
 		pathInline4.configure(state="disabled")
 		textEntry["width"] = 40
+		portraitPreviewObj.grid_remove()
 	else:
 		pathExpressionDropdown.configure(state="enabled")
 		pathInline3.configure(state="normal")
 		pathInline4.configure(state="normal")
 		textEntry["width"] = 30
+		portraitPreviewObj.grid()
 
-useImageVar = tk.IntVar()
-useImageCheckbox = tk.Checkbutton(contentFrame, text="Use portrait", variable = useImageVar)
+# Background selector
+def getBGOptions():
+	return list(dialogueGenerator.backgrounds)
+
+bgSelectorOptions = getBGOptions()
+bgSelector = tk.StringVar()
+bgSelectorLabel = tk.Label(assetMenu, text = "Background:")
+bgSelectorDropdown = ttk.OptionMenu(assetMenu, bgSelector, bgSelectorOptions[0], *bgSelectorOptions)
+
+checkboxes = tk.Frame(contentFrame)
+
+useImageCheckbox = tk.Checkbutton(checkboxes, text="Use portrait", variable = useImageVar)
 useImageVar.trace('w', setPathActiveFunction)
+
+threeLineVar = tk.IntVar()
+threeLineCheckbox = tk.Checkbutton(checkboxes, text = "Three line spacing", variable = threeLineVar)
+
+# Auto open checkbox
+autoOpenVar = tk.IntVar()
+autoOpenCheckbox = tk.Checkbutton(checkboxes, text="auto open gif", variable = autoOpenVar)
 
 # Path entry
 pathRequirementMessage = tk.Message(contentFrame, text = """Portrait path:
@@ -144,17 +194,14 @@ def setpe(*args):
 pathInline1 = tk.Label(pathBox, text = "faces/")
 
 pathUniverseOptions = getpu()
-pathUniverse = tk.StringVar()
 pathUniverseDropdown = ttk.OptionMenu(pathBox, pathUniverse, pathUniverseOptions[0], *pathUniverseOptions)
 
 pathInline2 = tk.Label(pathBox, text = "/")
 
-pathCharacter = tk.StringVar()
 pathCharacterDropdown = ttk.OptionMenu(pathBox, pathCharacter)
 
 pathInline3 = tk.Label(pathBox, text = "/")
 
-pathExpression = tk.StringVar()
 pathExpressionDropdown = ttk.OptionMenu(pathBox, pathExpression)
 
 pathInline4 = tk.Label(pathBox, text = ".png")
@@ -163,9 +210,19 @@ pathCharacter.trace('w', setpe)
 pathUniverse.trace('w', setpc)
 pathUniverse.set("ut")
 
-# Auto open checkbox
-autoOpenVar = tk.IntVar()
-autoOpenCheckbox = tk.Checkbutton(contentFrame, text="auto open gif", variable = autoOpenVar)
+# More portrait stuff
+# WHY DOESN'T THIS WORK WITHOUT THE defaultImage?????
+defaultImage = getPortraitImg()
+portraitPreviewObj = tk.Label(entryFrame, image = defaultImage, relief = "flat", bd = 0)
+
+def updatePreviewImage(*args):
+	newPortrait = getPortraitImg()
+	portraitPreviewObj.configure(image=newPortrait)
+	portraitPreviewObj.image = newPortrait
+
+# From now on, update this stuff - can't be done earlier due to path being required
+# for this
+pathExpression.trace('w', updatePreviewImage)
 
 # Custom file name
 fileNameLabel = tk.Label(contentFrame, text = "File name")
@@ -345,16 +402,35 @@ portraitDelayEntry.grid(row = 13)
 contentFrame.grid(row=1, column = 0)
 contentHeader.grid(row = 0)
 
+# Data entry frame
+entryFrame.grid(row = 1, column=0)
+
+portraitPreviewObj.grid(row = 0, column=0)
+
 # Text entry field
-useImageVar.set(1)
-textEntry.grid(row=1, column = 0)
+textEntry.grid(row=0, column = 1)
+
+# Asset dropdowns
+
+assetMenu.grid(row = 2, column = 0)
 
 # Font selector dropdown
-fontSelectorLabel.grid(row=2, column = 0)
-fontSelectorDropdown.grid(row=3, column = 0)
+fontSelectorLabel.grid(row=0, column = 0)
+fontSelectorDropdown.grid(row=1, column = 0)
 
+# Background selector dropdown
+bgSelectorLabel.grid(row = 0, column=1)
+bgSelectorDropdown.grid(row = 1, column=1)
+
+# All checkboxes
+checkboxes.grid(row = 4, column = 0)
 # Sprite present checkbox
-useImageCheckbox.grid(row = 4, column = 0)
+useImageCheckbox.grid(row = 0, column = 0)
+# Three line dialogue box checkbox
+threeLineCheckbox.grid(row = 0, column = 1)
+# Auto-open checkbox
+autoOpenCheckbox.grid(row = 0, column = 2)
+
 
 # Sprite select field
 pathRequirementMessage.grid(row = 5, column = 0)
@@ -368,8 +444,6 @@ pathInline3.grid(row = 0, column = 4)
 pathExpressionDropdown.grid(row = 0, column = 5)
 pathInline4.grid(row = 0, column = 6)
 
-# Auto-open checkbox
-autoOpenCheckbox.grid(row = 7, column = 0)
 
 # File name
 fileNameLabel.grid(row = 8, column = 0)

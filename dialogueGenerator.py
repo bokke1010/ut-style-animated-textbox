@@ -4,7 +4,6 @@ from os import listdir
 import json
 
 
-#TODO: Load from available fonts & file
 fonts = {}
 
 def loadFontData():
@@ -24,6 +23,18 @@ def loadFontData():
 
 loadFontData()
 
+backgrounds = []
+
+def loadBackgroundData():
+	for filename in listdir("backgrounds/"):
+		# Only valid png files
+		if not filename[-4:] == ".png":
+			continue
+
+		backgrounds.append(filename)
+
+loadBackgroundData()
+
 frametime = 40
 chardelay = 1
 delays = {
@@ -40,10 +51,11 @@ outputFileName = "outputDialogue"
 
 portraitInterval = 4
 
-def create(text, universe, name, expression, fontname = "default.otf"):
+def create(text, universe, name, expression, fontname = "default.otf", background = "dialogue_box.png"):
 
 	# Background image
-	bgImage = Image.open("dialogue_box.png").convert("RGBA")
+	#TODO: Couple with backgrounds list.
+	bgImage = Image.open("backgrounds/" + background).convert("RGBA")
 
 	# Get portraits
 	if expression != None:
