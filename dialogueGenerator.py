@@ -3,7 +3,6 @@ from os import path
 from os import listdir
 import json
 
-
 fonts = {}
 
 def loadFontData():
@@ -46,12 +45,20 @@ delays = {
 color = (255, 255, 255, 255)
 xoffset = 28
 yoffset = 15
+portraitxoffset, portraityoffset = 0, -3
 
 outputFileName = "outputDialogue"
 
 portraitInterval = 4
 
-def create(text, universe, name, expression, fontname = "default.otf", background = "dialogue_box.png"):
+def create(text: str,
+		universe: str,
+		name: str,
+		expression: str,
+		fontname: str = "default.otf",
+		background: str = "dialogue_box.png",
+		scalingFactor: int = 2
+	):
 
 	# Background image
 	#TODO: Couple with backgrounds list.
@@ -63,7 +70,7 @@ def create(text, universe, name, expression, fontname = "default.otf", backgroun
 		facecount = 1
 		while path.exists(facepath := path.join("faces", universe, name, expression + str(facecount) + ".png")):
 			faceFrame = Image.open(facepath).convert("RGBA")
-			faceAnimation.append(faceFrame.resize((faceFrame.width * 2, faceFrame.height * 2), resample=Image.NEAREST))
+			faceAnimation.append(faceFrame.resize((faceFrame.width * scalingFactor, faceFrame.height * scalingFactor), resample=Image.NEAREST))
 			facecount += 1
 		facecount -= 1
 
@@ -81,7 +88,7 @@ def create(text, universe, name, expression, fontname = "default.otf", backgroun
 		dx = xoffset + (118 if expression != None else 0)
 		dy = yoffset
 		draw = ImageDraw.Draw(textFrame)
-		draw.multiline_text((dx + charfont["dx"], dy + charfont["dy"]), text[:i+1], font = font, fill = color)
+		draw.multiline_text((dx + charfont["dx"], dy + charfont["dy"]), text[:i+1], font = font, fill = color, spacing=2)
 
 		# Determine text delay
 		char = text[i]
@@ -96,7 +103,7 @@ def create(text, universe, name, expression, fontname = "default.otf", backgroun
 			if expression != None:
 				portraitFrame = textFrame.copy()
 				portrait = faceAnimation[(len(frames) // portraitInterval) % facecount]
-				portraitFrame.paste(portrait.copy(), (77 - portrait.width // 2, (bgImage.height - portrait.height) // 2 - 3), mask = portrait)
+				portraitFrame.paste(portrait.copy(), (77 + portraitxoffset - portrait.width // 2, (bgImage.height - portrait.height) // 2 + portraityoffset), mask = portrait)
 				frames.append(portraitFrame)
 			else:
 				frames.append(textFrame)
