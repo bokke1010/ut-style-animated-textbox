@@ -1,4 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont
+from pydub import AudioSegment
 from os import path
 from os import listdir
 import json
@@ -34,6 +35,17 @@ def loadBackgroundData():
 
 loadBackgroundData()
 
+blips = []
+
+def loadAudioBlips():
+	for filename in listdir("blips/"):
+		# Only valid sound files
+		if filename.split(".")[-1] not in ["wav", "mp3"]:
+			continue
+		blips.append(filename)
+
+loadAudioBlips()
+
 frametime = 40
 chardelay = 1
 delays = {
@@ -57,11 +69,13 @@ def create(text: str,
 		expression: str,
 		fontname: str = "default.otf",
 		background: str = "dialogue_box.png",
-		scalingFactor: int = 2
+		scalingFactor: int = 2,
+		blip_path: str = None
 	):
 
+	frameCount = sum(delays[char] if char in delays else chardelay for char in text)
+
 	# Background image
-	#TODO: Couple with backgrounds list.
 	bgImage = Image.open("backgrounds/" + background).convert("RGBA")
 
 	# Get portraits
@@ -78,9 +92,16 @@ def create(text: str,
 	charfont = fonts[fontname]
 	font = ImageFont.truetype("fonts/" + fontname, charfont["size"])
 
+	# Setup audio
+	generateAudio = blip_path != None
+	if generateAudio:
+		blip = AudioSegment.from_file("blips/" + blip_path)
+		blipTrack = AudioSegment.silent(frametime * frameCount + len(blip))
+
 	# Create frames
 	frames = []
 	for i in range(len(text)):
+
 		# Get background
 		textFrame = bgImage.copy()
 
@@ -88,7 +109,8 @@ def create(text: str,
 		dx = xoffset + (118 if expression != None else 0)
 		dy = yoffset
 		draw = ImageDraw.Draw(textFrame)
-		draw.multiline_text((dx + charfont["dx"], dy + charfont["dy"]), text[:i+1], font = font, fill = color, spacing=2)
+		draw.multiline_text((dx + charfont["dx"], dy + charfont["dy"]),
+							text[:i+1], font=font, fill=color, spacing=2)
 
 		# Determine text delay
 		char = text[i]
@@ -96,17 +118,23 @@ def create(text: str,
 		if char in delays:
 			chartime = delays[char]
 
+		if generateAudio:
+			blipTrack = blipTrack.overlay(blip, position=len(frames) * frametime)
+
 		# Add the required number of frames
 		for j in range(chartime):
-
 			# Draw portrait
-			if expression != None:
+			if expression == None:
+				frames.append(textFrame)
+			else:
 				portraitFrame = textFrame.copy()
 				portrait = faceAnimation[(len(frames) // portraitInterval) % facecount]
 				portraitFrame.paste(portrait.copy(), (77 + portraitxoffset - portrait.width // 2, (bgImage.height - portrait.height) // 2 + portraityoffset), mask = portrait)
 				frames.append(portraitFrame)
-			else:
-				frames.append(textFrame)
 
 	# Save animation
 	frames[0].save(outputFileName + ".gif", save_all = True, append_images = frames[1:], duration = frametime)
+	if generateAudio:
+		blipTrack.export(outputFileName+".mp3",
+						 format="mp3",
+						 bitrate="128k")

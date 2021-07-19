@@ -8,10 +8,13 @@ boty.py
 
 faces/
 fonts/
+blips/
 sheets/
 package/
 offlineDist.zip
 *.gif
+*.mp3
 test.py
 portrait.png
 generator_settings.json
+fontdata.json

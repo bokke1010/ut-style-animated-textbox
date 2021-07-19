@@ -23,6 +23,7 @@ print("dialogue generator imported correctly")
 # Fix line spacing being dependant on character height?
 # - See ImageDraw.multiline_text. - possibly fixed? no longer able to reproduce
 # Two-frame mode
+# Add mp3 file support to UI
 
 
 root = tk.Tk()
@@ -44,8 +45,6 @@ optionHeader = tk.Label(timingOptionsFrame, text="Textbox Options:")
 # Right side, for portrait and font stuffs
 
 portraitFontOptionsFrame = tk.Frame(root)
-portraitFrame = tk.Frame(portraitFontOptionsFrame)
-portraitHeader = tk.Label(portraitFrame, text="Portrait options:")
 fontFrame = tk.Frame(portraitFontOptionsFrame)
 fontHeader = tk.Label(fontFrame, text="Font stuffs:")
 
@@ -53,6 +52,7 @@ fontHeader = tk.Label(fontFrame, text="Font stuffs:")
 # Variable declaration - for future stuffs
 
 useImageVar = tk.IntVar(value=1)
+useSoundVar = tk.IntVar(value=0)
 
 pathUniverse = tk.StringVar()
 pathCharacter = tk.StringVar()
@@ -123,13 +123,22 @@ def createFunction():
 	dialogueGenerator.portraityoffset = int(portraitOffsety.get())
 
 	scaleFactor = portraitScaleField.get()
-	textboxcontent = textEntry.get("1.0", "4.40")
-	expression = None
+	textboxcontent = textEntry.get("1.0", "4.40").rstrip()
 
+	expression = None
 	if useImageVar.get() == 1:
 		expression = pathExpression.get()
 
-	dialogueGenerator.create(textboxcontent, pathUniverse.get(), pathCharacter.get(), expression, fontSelector.get(), bgSelector.get(), scalingFactor=scaleFactor)
+	blip = None
+	if useSoundVar.get() == 1:
+		blip = blipSelector.get()
+
+	dialogueGenerator.create(textboxcontent,
+							 pathUniverse.get(), pathCharacter.get(), expression,
+							 fontname=fontSelector.get(),
+							 background=bgSelector.get(),
+							 scalingFactor=scaleFactor,
+							 blip_path=blip)
 
 	if (autoOpenVar.get() == 1):
 		if platform == "win32": # Only windows was tested
@@ -194,15 +203,17 @@ def setPathActiveFunction(*args):
 
 # Background selector
 def getBGOptions():
-	return list(dialogueGenerator.backgrounds)
+	return dialogueGenerator.backgrounds
 
 bgSelectorOptions = getBGOptions()
 bgSelector = tk.StringVar()
 bgSelectorLabel = tk.Label(assetMenu, text = "Background:")
 bgSelectorDropdown = ttk.OptionMenu(assetMenu, bgSelector, bgSelectorOptions[0], *bgSelectorOptions)
 
+# Checkboxes
 checkboxes = tk.Frame(contentFrame)
 
+# 3 or 4 line text toggle
 threeLineVar = tk.IntVar()
 threeLineCheckbox = tk.Checkbutton(checkboxes, text = "Three line spacing", variable = threeLineVar)
 
@@ -272,7 +283,7 @@ pathInline4 = tk.Label(pathBox, text = ".png")
 
 pathCharacter.trace('w', setpe)
 pathUniverse.trace('w', setpc)
-pathUniverse.set("ut")
+pathUniverse.set(pathUniverseOptions[0])
 
 # More portrait stuff
 # WHY DOESN'T THIS WORK WITHOUT THE defaultImage?????
@@ -378,6 +389,8 @@ saveSettingsButton = tk.Button(saveButtonBox, text= "save settings", command = s
 #-------------------------------------------------------------------------------
 
 # Portrait settings
+portraitFrame = tk.Frame(portraitFontOptionsFrame)
+portraitHeader = tk.Label(portraitFrame, text="Portrait options:")
 
 useImageCheckbox = tk.Checkbutton(portraitFrame, text="Use portrait", variable = useImageVar)
 useImageVar.trace('w', setPathActiveFunction)
@@ -394,6 +407,21 @@ portraitOffsetxEntry = tk.Entry(portraitOffsetBox, textvariable = portraitOffset
 
 portraitOffsety = tk.StringVar(value = dialogueGenerator.portraityoffset)
 portraitOffsetyEntry = tk.Entry(portraitOffsetBox, textvariable = portraitOffsety, width=3, validate = "key", validatecommand = (intValidator, "%P"))
+
+#-------------------------------------------------------------------------------
+# Sound settings
+soundFrame = tk.Frame(portraitFontOptionsFrame)
+soundHeader = tk.Label(soundFrame, text="Sound options:")
+
+useSoundCheckbox = tk.Checkbutton(soundFrame, text="Use sounds", variable = useSoundVar)
+
+def getBlips():
+	return dialogueGenerator.blips
+
+blipSelectorOptions = getBlips()
+blipSelector = tk.StringVar()
+blipSelectorLabel = tk.Label(soundFrame, text = "Sound blip:")
+blipSelectorDropdown = ttk.OptionMenu(soundFrame, blipSelector, blipSelectorOptions[0], *blipSelectorOptions)
 
 #-------------------------------------------------------------------------------
 
@@ -564,8 +592,16 @@ portraitOffsetBox.grid(row = 4, column = 0)
 portraitOffsetxEntry.grid(row = 0, column = 0)
 portraitOffsetyEntry.grid(row = 0, column = 1)
 
+# Sound stuffs
+soundFrame.grid(row=1)
+soundHeader.grid(row=0)
+useSoundCheckbox.grid(row=1)
+
+blipSelectorLabel.grid(row=2)
+blipSelectorDropdown.grid(row=3)
+
 # Font stuffs
-fontFrame.grid(row = 1)
+fontFrame.grid(row = 2)
 fontHeader.grid(row = 0)
 
 # Show current font data
