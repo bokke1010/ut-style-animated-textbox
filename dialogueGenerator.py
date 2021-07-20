@@ -70,7 +70,8 @@ def create(text: str,
 		fontname: str = "default.otf",
 		background: str = "dialogue_box.png",
 		scalingFactor: int = 2,
-		blip_path: str = None
+		blip_path: str = None,
+		fileFormat: str = "gif"
 	):
 
 	frameCount = sum(delays[char] if char in delays else chardelay for char in text)
@@ -134,7 +135,7 @@ def create(text: str,
 				frames.append(portraitFrame)
 
 	# Save animation
-	frames[0].save(outputFileName + ".gif", save_all = True, append_images = frames[1:], duration = frametime)
+	frames[0].save(f"{outputFileName}.{fileFormat}", save_all = True, append_images = frames[1:], duration = frametime)
 	if generateAudio:
 		blipTrack.export(outputFileName+".mp3",
 						 format="mp3",

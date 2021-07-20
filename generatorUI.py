@@ -126,6 +126,7 @@ def createFunction():
 	dialogueGenerator.portraityoffset = int(portraitOffsety.get())
 
 	scaleFactor = portraitScaleField.get()
+	fileFormat = fileFormatVar.get()
 	textboxcontent = textEntry.get("1.0", "4.40").rstrip()
 
 	expression = None
@@ -141,15 +142,16 @@ def createFunction():
 							 fontname=fontSelector.get(),
 							 background=bgSelector.get(),
 							 scalingFactor=scaleFactor,
-							 blip_path=blip)
+							 blip_path=blip,
+							 fileFormat=fileFormat)
 
 	if (autoOpenVar.get() == 1):
 		if platform == "win32": # Only windows was tested
-			system(f"start {filename}.gif")
+			system(f"start {filename}.{fileFormat}")
 		elif platform == "darwin": # Mac OS?
-			system(f"open {filename}.gif")
+			system(f"open {filename}.{fileFormat}")
 		else: # Linux?
-			system(f"xdg-open {filename}.gif")
+			system(f"xdg-open {filename}.{fileFormat}")
 
 #-------------------------------------------------------------------------------
 #ANCHOR Visual entry environment
@@ -224,6 +226,10 @@ pathExpression.trace('w', updatePreviewImage)
 fileNameLabel = tk.Label(contentFrame, text = "File name")
 fileNameEntry = tk.Entry(contentFrame)
 fileNameEntry.insert(0, "outputDialogue")
+
+fileFormatLabel = tk.Label(contentFrame, text = "File format")
+fileFormatVar = tk.StringVar(value="gif")
+fileFormatDropdown = tk.OptionMenu(contentFrame, fileFormatVar, "gif", "apng")
 
 # Creation button
 createAnimation = tk.Button(contentFrame, text= "Create!", command = createFunction, pady = 5, padx = 15, bg = "black", fg = "gold")
@@ -575,8 +581,12 @@ autoOpenCheckbox.grid(row = 4, column = 0)
 fileNameLabel.grid(row = 8, column = 0)
 fileNameEntry.grid(row = 9, column = 0)
 
+# File format
+fileFormatLabel.grid(row=10)
+fileFormatDropdown.grid(row=11)
+
 # Create button
-createAnimation.grid(row = 10)
+createAnimation.grid(row = 12)
 
 #ANCHOR extra settings frame alignment
 
