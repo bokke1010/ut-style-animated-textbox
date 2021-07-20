@@ -1,4 +1,5 @@
 .git/
+.vs/
 .env.txt
 
 __pycache__/
@@ -6,9 +7,12 @@ __pycache__/
 requirements.txt
 boty.py
 
-faces/
-fonts/
-blips/
+faces/*
+!faces/example/
+fonts/*
+!fonts/default.otf
+blips/*
+!blips/example.wav
 sheets/
 package/
 offlineDist.zip
@@ -18,3 +22,4 @@ test.py
 portrait.png
 generator_settings.json
 fontdata.json
+

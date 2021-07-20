@@ -118,8 +118,9 @@ def create(text: str,
 		if char in delays:
 			chartime = delays[char]
 
-		if generateAudio:
+		if generateAudio and char.isalnum():
 			blipTrack = blipTrack.overlay(blip, position=len(frames) * frametime)
+
 
 		# Add the required number of frames
 		for j in range(chartime):

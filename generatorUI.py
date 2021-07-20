@@ -17,6 +17,7 @@ print("tkinter imported correctly")
 
 import dialogueGenerator
 print("dialogue generator imported correctly")
+frameSettings = {"padx": 3, "pady": 3, "borderwidth": 3, "relief": "groove"}
 
 #TODO:
 # Add offset preview
@@ -39,14 +40,12 @@ contentFrame = tk.Frame(root)
 contentHeader = tk.Label(contentFrame, text="Textbox content:")
 
 # Middle, reserved for settings
-timingOptionsFrame = tk.Frame(root)
-optionHeader = tk.Label(timingOptionsFrame, text="Textbox Options:")
+generalOptionsFrame = tk.Frame(root)
+optionHeader = tk.Label(generalOptionsFrame, text="Textbox Options:")
 
 # Right side, for portrait and font stuffs
 
 portraitFontOptionsFrame = tk.Frame(root)
-fontFrame = tk.Frame(portraitFontOptionsFrame)
-fontHeader = tk.Label(fontFrame, text="Font stuffs:")
 
 #-------------------------------------------------------------------------------
 # Variable declaration - for future stuffs
@@ -162,19 +161,7 @@ def getPortraitImg():
 
 textEntry = tk.Text(entryFrame, height=4, width=30, bg = "black", fg = "white", relief = "flat", bd = 0, insertbackground = "white")
 
-
-
 assetMenu = tk.Frame(contentFrame)
-
-# Font selector
-def getFontOptions():
-	return list(dialogueGenerator.fonts.keys())
-
-fontSelectorOptions = getFontOptions()
-fontSelector = tk.StringVar()
-fontSelectorLabel = tk.Label(assetMenu, text = "Font:")
-fontSelectorDropdown = ttk.OptionMenu(assetMenu, fontSelector, fontSelectorOptions[0], *fontSelectorOptions)
-
 
 # Use portrait checkbox
 def setPathActiveFunction(*args):
@@ -221,12 +208,126 @@ threeLineCheckbox = tk.Checkbutton(checkboxes, text = "Three line spacing", vari
 autoOpenVar = tk.IntVar()
 autoOpenCheckbox = tk.Checkbutton(checkboxes, text="auto open gif", variable = autoOpenVar)
 
+# More portrait stuff
+# WHY DOESN'T THIS WORK WITHOUT THE defaultImage?????
+defaultImage = getPortraitImg()
+portraitPreviewObj = tk.Label(entryFrame, image = defaultImage, relief = "flat", bd = 0)
+
+def updatePreviewImage(*args):
+	newPortrait = getPortraitImg()
+	portraitPreviewObj.configure(image=newPortrait)
+	portraitPreviewObj.image = newPortrait
+
+# From now on, update this stuff - can't be done earlier due to path being required
+# for this
+pathExpression.trace('w', updatePreviewImage)
+
+# Custom file name
+fileNameLabel = tk.Label(contentFrame, text = "File name")
+fileNameEntry = tk.Entry(contentFrame)
+fileNameEntry.insert(0, "outputDialogue")
+
+# Creation button
+createAnimation = tk.Button(contentFrame, text= "Create!", command = createFunction, pady = 5, padx = 15, bg = "black", fg = "gold")
+
+#-------------------------------------------------------------------------------
+# Text color
+def textColor():
+	colorRGB, colorHex = tk.colorchooser.askcolor(initialcolor = "#ffffff", parent = generalOptionsFrame, title="Pick your text color")
+	if colorRGB == None:
+		return
+	textEntry.config(fg = colorHex)
+	dialogueGenerator.color = (int(colorRGB[0]), int(colorRGB[1]), int(colorRGB[2]), 255)
+
+colorButton = tk.Button(generalOptionsFrame, text= "Pick color", command = textColor)
+
+# Offset
+def validateInteger(val):
+	if val.isdigit():
+		return True
+	return False
+
+intValidator = root.register(validateInteger)
+
+
+textOffsetLabel = tk.Label(generalOptionsFrame, text="Text offset (x, y):")
+textOffsetBox = tk.Frame(generalOptionsFrame)
+
+textOffsetx = tk.StringVar(value = dialogueGenerator.xoffset)
+textOffsetxEntry = tk.Entry(textOffsetBox, textvariable = textOffsetx, width=3, validate = "key", validatecommand = (intValidator, "%P"))
+
+textOffsety = tk.StringVar(value = dialogueGenerator.yoffset)
+textOffsetyEntry = tk.Entry(textOffsetBox, textvariable = textOffsety, width=3, validate = "key", validatecommand = (intValidator, "%P"))
+
+#ANCHOR animation frame
+animationFrame = tk.Frame(generalOptionsFrame, **frameSettings)
+animationLabel = tk.Label(animationFrame, text="Animation timing settings")
+
+# Frame delay
+frametimeLabel = tk.Label(animationFrame, text="Frame delay in milliseconds:")
+frametimeEntry = tk.Entry(animationFrame, width=3)
+frametimeEntry.insert(tk.END, str(dialogueGenerator.frametime))
+
+# Character delay
+framepercharLabel = tk.Label(animationFrame, text="Number of frames for each character:")
+framepercharEntry = tk.Entry(animationFrame, width=3)
+framepercharEntry.insert(tk.END, str(dialogueGenerator.chardelay))
+
+# Character custom delays
+def setCharDelayFunction():
+	char = charDelaySelectEntry.get()
+	val = charDelayValueEntry.get()
+	if val == "" and char in dialogueGenerator.delays:
+		del dialogueGenerator.delays[char]
+	else:
+		dialogueGenerator.delays[char] = int(val)
+	charListVar.set(getCharDelayFunction())
+
+def getCharDelayFunction():
+	res = ""
+	for k, v in dialogueGenerator.delays.items():
+		res += "''" + k + "' : " + str(v) + "\n"
+	return res
+
+charDelayLabel = tk.Label(animationFrame, text="Number of frames for special characters:")
+
+charDelayBox = tk.Frame(animationFrame)
+charDelaySelectEntry = tk.Entry(charDelayBox, width=1)
+charDelayJoin = tk.Label(charDelayBox, text=":")
+charDelayValueEntry = tk.Entry(charDelayBox, width=3)
+setCharDelayButton = tk.Button(charDelayBox, text="Set", command = setCharDelayFunction)
+
+# Display character delays
+charListVar = tk.StringVar()
+charListVar.set(getCharDelayFunction())
+charDelayDefaultMessage = tk.Message(animationFrame, textvariable=charListVar)
+
+# Portrait animation delay
+portraitDelayLabel = tk.Label(animationFrame, text="Number of frames for portrait animation:")
+portraitDelayEntry = tk.Entry(animationFrame, width=2)
+portraitDelayEntry.insert(tk.END, "4")
+
+# Save and load some settings
+saveButtonBox = tk.Frame(generalOptionsFrame)
+loadSettingsButton = tk.Button(saveButtonBox, text= "load settings", command = loadSettings, pady = 3, padx = 5, bg = "darkblue", fg = "gold")
+saveSettingsButton = tk.Button(saveButtonBox, text= "save settings", command = saveSettings, pady = 3, padx = 5, bg = "darkblue", fg = "gold")
+
+
+#-------------------------------------------------------------------------------
+#ANCHOR Portrait settings
+
+portraitFrame = tk.Frame(portraitFontOptionsFrame, **frameSettings)
+portraitHeader = tk.Label(portraitFrame, text="Portrait options:")
+
+useImageCheckbox = tk.Checkbutton(portraitFrame, text="Use portrait", variable = useImageVar)
+useImageVar.trace('w', setPathActiveFunction)
+
 # Path entry
-pathRequirementMessage = tk.Message(contentFrame, text = """Portrait path:
+pathRequirementMessage = tk.Message(portraitFrame, text = """Portrait path:
 - File must be a png file.
 - File name must end with a number containing what frame it is.
 - Only having frame 1 will disable animation.""", width = 400)
-pathBox = tk.Frame(contentFrame)
+pathBox = tk.Frame(portraitFrame)
 
 def getpu():
 	return listdir("faces/")
@@ -285,116 +386,6 @@ pathCharacter.trace('w', setpe)
 pathUniverse.trace('w', setpc)
 pathUniverse.set(pathUniverseOptions[0])
 
-# More portrait stuff
-# WHY DOESN'T THIS WORK WITHOUT THE defaultImage?????
-defaultImage = getPortraitImg()
-portraitPreviewObj = tk.Label(entryFrame, image = defaultImage, relief = "flat", bd = 0)
-
-def updatePreviewImage(*args):
-	newPortrait = getPortraitImg()
-	portraitPreviewObj.configure(image=newPortrait)
-	portraitPreviewObj.image = newPortrait
-
-# From now on, update this stuff - can't be done earlier due to path being required
-# for this
-pathExpression.trace('w', updatePreviewImage)
-
-# Custom file name
-fileNameLabel = tk.Label(contentFrame, text = "File name")
-fileNameEntry = tk.Entry(contentFrame)
-fileNameEntry.insert(0, "outputDialogue")
-
-# Creation button
-createAnimation = tk.Button(contentFrame, text= "Create!", command = createFunction, pady = 5, padx = 15, bg = "black", fg = "gold")
-
-#-------------------------------------------------------------------------------
-# Text color
-def textColor():
-	colorRGB, colorHex = tk.colorchooser.askcolor(initialcolor = "#ffffff", parent = timingOptionsFrame, title="Pick your text color")
-	if colorRGB == None:
-		return
-	textEntry.config(fg = colorHex)
-	dialogueGenerator.color = (int(colorRGB[0]), int(colorRGB[1]), int(colorRGB[2]), 255)
-
-colorButton = tk.Button(timingOptionsFrame, text= "Pick color", command = textColor)
-
-# Offset
-def validateInteger(val):
-	if val.isdigit():
-		return True
-	return False
-
-intValidator = root.register(validateInteger)
-
-
-textOffsetLabel = tk.Label(timingOptionsFrame, text="Text offset (x, y):")
-textOffsetBox = tk.Frame(timingOptionsFrame)
-
-textOffsetx = tk.StringVar(value = dialogueGenerator.xoffset)
-textOffsetxEntry = tk.Entry(textOffsetBox, textvariable = textOffsetx, width=3, validate = "key", validatecommand = (intValidator, "%P"))
-
-textOffsety = tk.StringVar(value = dialogueGenerator.yoffset)
-textOffsetyEntry = tk.Entry(textOffsetBox, textvariable = textOffsety, width=3, validate = "key", validatecommand = (intValidator, "%P"))
-
-# Frame delay
-frametimeLabel = tk.Label(timingOptionsFrame, text="Frame delay in milliseconds:")
-frametimeEntry = tk.Entry(timingOptionsFrame, width=3)
-frametimeEntry.insert(tk.END, str(dialogueGenerator.frametime))
-
-# Character delay
-framepercharLabel = tk.Label(timingOptionsFrame, text="Number of frames for each character:")
-framepercharEntry = tk.Entry(timingOptionsFrame, width=3)
-framepercharEntry.insert(tk.END, str(dialogueGenerator.chardelay))
-
-# Character custom delays
-def setCharDelayFunction():
-	char = charDelaySelectEntry.get()
-	val = charDelayValueEntry.get()
-	if val == "" and char in dialogueGenerator.delays:
-		del dialogueGenerator.delays[char]
-	else:
-		dialogueGenerator.delays[char] = int(val)
-	charListVar.set(getCharDelayFunction())
-
-def getCharDelayFunction():
-	res = ""
-	for k, v in dialogueGenerator.delays.items():
-		res += "''" + k + "' : " + str(v) + "\n"
-	return res
-
-charDelayLabel = tk.Label(timingOptionsFrame, text="Number of frames for special characters:")
-
-charDelayBox = tk.Frame(timingOptionsFrame)
-charDelaySelectEntry = tk.Entry(charDelayBox, width=1)
-charDelayJoin = tk.Label(charDelayBox, text=":")
-charDelayValueEntry = tk.Entry(charDelayBox, width=3)
-setCharDelayButton = tk.Button(charDelayBox, text="Set", command = setCharDelayFunction)
-
-# Display character delays
-charListVar = tk.StringVar()
-charListVar.set(getCharDelayFunction())
-charDelayDefaultMessage = tk.Message(timingOptionsFrame, textvariable=charListVar)
-
-# Portrait animation delay
-portraitDelayLabel = tk.Label(timingOptionsFrame, text="Number of frames for portrait animation:")
-portraitDelayEntry = tk.Entry(timingOptionsFrame, width=2)
-portraitDelayEntry.insert(tk.END, "4")
-
-# Save and load some settings
-saveButtonBox = tk.Frame(timingOptionsFrame)
-loadSettingsButton = tk.Button(saveButtonBox, text= "load settings", command = loadSettings, pady = 3, padx = 5, bg = "darkblue", fg = "gold")
-saveSettingsButton = tk.Button(saveButtonBox, text= "save settings", command = saveSettings, pady = 3, padx = 5, bg = "darkblue", fg = "gold")
-
-
-#-------------------------------------------------------------------------------
-
-# Portrait settings
-portraitFrame = tk.Frame(portraitFontOptionsFrame)
-portraitHeader = tk.Label(portraitFrame, text="Portrait options:")
-
-useImageCheckbox = tk.Checkbutton(portraitFrame, text="Use portrait", variable = useImageVar)
-useImageVar.trace('w', setPathActiveFunction)
-
 portraitScaleLabel = tk.Label(portraitFrame, text="Portrait scale")
 portraitScaleField = tk.Scale(portraitFrame, resolution=1, from_=1, to=8, orient="horizontal")
 portraitScaleField.set(2)
@@ -409,8 +400,9 @@ portraitOffsety = tk.StringVar(value = dialogueGenerator.portraityoffset)
 portraitOffsetyEntry = tk.Entry(portraitOffsetBox, textvariable = portraitOffsety, width=3, validate = "key", validatecommand = (intValidator, "%P"))
 
 #-------------------------------------------------------------------------------
-# Sound settings
-soundFrame = tk.Frame(portraitFontOptionsFrame)
+#ANCHOR Sound settings
+
+soundFrame = tk.Frame(portraitFontOptionsFrame, **frameSettings)
 soundHeader = tk.Label(soundFrame, text="Sound options:")
 
 useSoundCheckbox = tk.Checkbutton(soundFrame, text="Use sounds", variable = useSoundVar)
@@ -424,8 +416,20 @@ blipSelectorLabel = tk.Label(soundFrame, text = "Sound blip:")
 blipSelectorDropdown = ttk.OptionMenu(soundFrame, blipSelector, blipSelectorOptions[0], *blipSelectorOptions)
 
 #-------------------------------------------------------------------------------
+#ANCHOR Font settings
 
-fontLabel = tk.Label(fontFrame, text = "Font options:")
+
+fontFrame = tk.Frame(portraitFontOptionsFrame, **frameSettings)
+
+# Font selector
+def getFontOptions():
+	return list(dialogueGenerator.fonts.keys())
+
+fontSelectorOptions = getFontOptions()
+fontSelector = tk.StringVar()
+fontSelectorLabel = tk.Label(fontFrame, text = "Current font:")
+fontSelectorDropdown = ttk.OptionMenu(fontFrame, fontSelector, fontSelectorOptions[0], *fontSelectorOptions)
+
 fontDict = {}
 
 def setFontFunction():
@@ -468,11 +472,12 @@ def saveFontData():
 		json.dump(dialogueGenerator.fonts, jsonFile)
 
 # Display font data
+fontSettingsLabel = tk.Label(fontFrame, text="Font settings:")
 fontDataFrame = tk.Frame(fontFrame)
 getFontFunction()
 
 dataFontFrame = tk.Frame(fontFrame)
-applyFontButton = tk.Button(dataFontFrame, text = "Apply settings", command = setFontFunction)
+applyFontButton = tk.Button(dataFontFrame, text = "Apply font settings", command = setFontFunction)
 saveFontButton = tk.Button(dataFontFrame, text = "Apply & save to file", command = saveFontData)
 
 
@@ -483,7 +488,7 @@ print("elements initialized")
 appHeader.grid(row = 0, column = 0)
 
 # Options
-timingOptionsFrame.grid(row=1, column=1)
+generalOptionsFrame.grid(row=1, column=1)
 optionHeader.grid(row = 0)
 
 # Text color
@@ -494,18 +499,21 @@ textOffsetBox.grid(row = 7, column = 0)
 textOffsetxEntry.grid(row = 0, column = 0)
 textOffsetyEntry.grid(row = 0, column = 1)
 
+# Animation frame
+animationFrame.grid(row=8)
+animationLabel.grid(row=0)
 
 # Frame delay
-frametimeLabel.grid(row=8)
-frametimeEntry.grid(row=9)
+frametimeLabel.grid(row=1)
+frametimeEntry.grid(row=2)
 
 # character delays
-framepercharLabel.grid(row=10)
-framepercharEntry.grid(row=11)
+framepercharLabel.grid(row=3)
+framepercharEntry.grid(row=4)
 
 # Special character delays
-charDelayLabel.grid(row=12)
-charDelayBox.grid(row=13)
+charDelayLabel.grid(row=5)
+charDelayBox.grid(row=6)
 
 charDelaySelectEntry.grid(row = 0, column = 1)
 charDelayJoin.grid(row = 0, column = 2)
@@ -513,13 +521,14 @@ charDelayValueEntry.grid(row = 0, column = 3)
 setCharDelayButton.grid(row = 0, column = 4)
 
 # Show current special characters
-charDelayDefaultMessage.grid(row = 14, column = 0)
+charDelayDefaultMessage.grid(row = 7, column = 0)
 
 # Portrait delay
-portraitDelayLabel.grid(row = 15)
-portraitDelayEntry.grid(row = 16)
+portraitDelayLabel.grid(row = 8)
+portraitDelayEntry.grid(row = 9)
 
-saveButtonBox.grid(row=17, column=0)
+#ANCHOR Main save button
+saveButtonBox.grid(row=9, column=0)
 saveSettingsButton.grid(row=0, column=0)
 loadSettingsButton.grid(row=0, column=1)
 
@@ -539,10 +548,6 @@ textEntry.grid(row=0, column = 1)
 
 assetMenu.grid(row = 2, column = 0)
 
-# Font selector dropdown
-fontSelectorLabel.grid(row=0, column = 0)
-fontSelectorDropdown.grid(row=1, column = 0)
-
 # Background selector dropdown
 bgSelectorLabel.grid(row = 0, column=1)
 bgSelectorDropdown.grid(row = 1, column=1)
@@ -553,11 +558,6 @@ checkboxes.grid(row = 4, column = 0)
 threeLineCheckbox.grid(row = 0, column = 0)
 # Auto-open checkbox
 autoOpenCheckbox.grid(row = 0, column = 1)
-
-
-# Sprite select field
-pathRequirementMessage.grid(row = 5, column = 0)
-pathBox.grid(row = 6, column = 0)
 
 pathInline1.grid(row = 0, column = 0)
 pathUniverseDropdown.grid(row = 0, column = 1)
@@ -584,11 +584,15 @@ portraitFrame.grid(row = 0)
 # Sprite present checkbox
 useImageCheckbox.grid(row = 0)
 
-portraitScaleLabel.grid(row=1)
-portraitScaleField.grid(row=2)
+# Sprite select field
+pathRequirementMessage.grid(row = 1, column = 0)
+pathBox.grid(row = 2, column = 0)
 
-portraitOffsetLabel.grid(row = 3, column = 0)
-portraitOffsetBox.grid(row = 4, column = 0)
+portraitScaleLabel.grid(row=3)
+portraitScaleField.grid(row=4)
+
+portraitOffsetLabel.grid(row = 5, column = 0)
+portraitOffsetBox.grid(row = 6, column = 0)
 portraitOffsetxEntry.grid(row = 0, column = 0)
 portraitOffsetyEntry.grid(row = 0, column = 1)
 
@@ -602,13 +606,16 @@ blipSelectorDropdown.grid(row=3)
 
 # Font stuffs
 fontFrame.grid(row = 2)
-fontHeader.grid(row = 0)
+
+# Font selector dropdown
+fontSelectorLabel.grid(row=1, column = 0)
+fontSelectorDropdown.grid(row=2, column = 0)
 
 # Show current font data
-fontLabel.grid(row = 0, column = 0)
-fontDataFrame.grid(row = 1, column = 0)
+fontSettingsLabel.grid(row = 3)
+fontDataFrame.grid(row = 4, column = 0)
 
-dataFontFrame.grid(row = 2)
+dataFontFrame.grid(row = 5)
 applyFontButton.grid(row = 0, column = 0)
 saveFontButton.grid(row = 0, column = 1)
 
