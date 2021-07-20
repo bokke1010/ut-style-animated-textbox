@@ -17,7 +17,6 @@ print("tkinter imported correctly")
 
 import dialogueGenerator
 print("dialogue generator imported correctly")
-frameSettings = {"padx": 3, "pady": 3, "borderwidth": 3, "relief": "groove"}
 
 #TODO:
 # Add offset preview
@@ -26,14 +25,20 @@ frameSettings = {"padx": 3, "pady": 3, "borderwidth": 3, "relief": "groove"}
 # Two-frame mode
 # Add mp3 file support to UI
 
-
 root = tk.Tk()
 root.title("Animated textbox generator")
 root.iconbitmap("icon.ico")
 print("tkinter window created")
 
-# Creating the headers
-appHeader = tk.Label(root, text="Simple animated textbox UI")
+#ANCHOR general function and data registration
+frameSettings = {"padx": 3, "pady": 3, "borderwidth": 3, "relief": "groove"}
+
+def validateInteger(val):
+	if val.isdigit():
+		return True
+	return False
+
+intValidator = root.register(validateInteger)
 
 # Left side, reserved for box content
 contentFrame = tk.Frame(root)
@@ -41,7 +46,6 @@ contentHeader = tk.Label(contentFrame, text="Textbox content:")
 
 # Middle, reserved for settings
 generalOptionsFrame = tk.Frame(root)
-optionHeader = tk.Label(generalOptionsFrame, text="Textbox Options:")
 
 # Right side, for portrait and font stuffs
 
@@ -58,7 +62,7 @@ pathCharacter = tk.StringVar()
 pathExpression = tk.StringVar()
 
 #-------------------------------------------------------------------------------
-# SaveData
+#ANCHOR Save-related functions
 
 def saveSettings():
 	settings = {
@@ -106,7 +110,7 @@ def loadSettings():
 			charListVar.set(getCharDelayFunction())
 
 #-------------------------------------------------------------------------------
-# Define text entry
+#ANCHOR Dialogue creation function
 def createFunction():
 	dialogueGenerator.portraitInterval = int(portraitDelayEntry.get())
 	dialogueGenerator.frametime = int(frametimeEntry.get())
@@ -147,7 +151,8 @@ def createFunction():
 		else: # Linux?
 			system(f"xdg-open {filename}.gif")
 
-# Visual entry environment
+#-------------------------------------------------------------------------------
+#ANCHOR Visual entry environment
 entryFrame = tk.Frame(contentFrame, bg = "black", relief = "raised", bd = 5)
 
 # Portrait preview comes after path initialization
@@ -197,21 +202,14 @@ bgSelector = tk.StringVar()
 bgSelectorLabel = tk.Label(assetMenu, text = "Background:")
 bgSelectorDropdown = ttk.OptionMenu(assetMenu, bgSelector, bgSelectorOptions[0], *bgSelectorOptions)
 
-# Checkboxes
-checkboxes = tk.Frame(contentFrame)
-
-# 3 or 4 line text toggle
-threeLineVar = tk.IntVar()
-threeLineCheckbox = tk.Checkbutton(checkboxes, text = "Three line spacing", variable = threeLineVar)
-
 # Auto open checkbox
 autoOpenVar = tk.IntVar()
-autoOpenCheckbox = tk.Checkbutton(checkboxes, text="auto open gif", variable = autoOpenVar)
+autoOpenCheckbox = tk.Checkbutton(assetMenu, text="auto open gif", variable = autoOpenVar)
 
 # More portrait stuff
 # WHY DOESN'T THIS WORK WITHOUT THE defaultImage?????
 defaultImage = getPortraitImg()
-portraitPreviewObj = tk.Label(entryFrame, image = defaultImage, relief = "flat", bd = 0)
+portraitPreviewObj = tk.Label(entryFrame, image=defaultImage, relief="flat", bd=0, bg="black")
 
 def updatePreviewImage(*args):
 	newPortrait = getPortraitImg()
@@ -231,6 +229,24 @@ fileNameEntry.insert(0, "outputDialogue")
 createAnimation = tk.Button(contentFrame, text= "Create!", command = createFunction, pady = 5, padx = 15, bg = "black", fg = "gold")
 
 #-------------------------------------------------------------------------------
+#ANCHOR save buttons
+
+# Save and load some settings
+saveButtonBox = tk.Frame(portraitFontOptionsFrame)
+loadSettingsButton = tk.Button(saveButtonBox, text= "load settings", command = loadSettings, pady = 3, padx = 5, bg = "darkblue", fg = "gold")
+saveSettingsButton = tk.Button(saveButtonBox, text= "save settings", command = saveSettings, pady = 3, padx = 5, bg = "darkblue", fg = "gold")
+
+#-------------------------------------------------------------------------------
+#ANCHOR textbox options
+
+textboxOptionsFrame = tk.Frame(portraitFontOptionsFrame, **frameSettings)
+
+textboxOptionHeader = tk.Label(textboxOptionsFrame, text="Textbox Options:")
+
+# 3 or 4 line text toggle
+threeLineVar = tk.IntVar()
+threeLineCheckbox = tk.Checkbutton(textboxOptionsFrame, text = "Three line spacing", variable = threeLineVar)
+
 # Text color
 def textColor():
 	colorRGB, colorHex = tk.colorchooser.askcolor(initialcolor = "#ffffff", parent = generalOptionsFrame, title="Pick your text color")
@@ -239,19 +255,11 @@ def textColor():
 	textEntry.config(fg = colorHex)
 	dialogueGenerator.color = (int(colorRGB[0]), int(colorRGB[1]), int(colorRGB[2]), 255)
 
-colorButton = tk.Button(generalOptionsFrame, text= "Pick color", command = textColor)
+colorButton = tk.Button(textboxOptionsFrame, text= "Pick text color", command = textColor)
 
 # Offset
-def validateInteger(val):
-	if val.isdigit():
-		return True
-	return False
-
-intValidator = root.register(validateInteger)
-
-
-textOffsetLabel = tk.Label(generalOptionsFrame, text="Text offset (x, y):")
-textOffsetBox = tk.Frame(generalOptionsFrame)
+textOffsetLabel = tk.Label(textboxOptionsFrame, text="Text offset (x, y):")
+textOffsetBox = tk.Frame(textboxOptionsFrame)
 
 textOffsetx = tk.StringVar(value = dialogueGenerator.xoffset)
 textOffsetxEntry = tk.Entry(textOffsetBox, textvariable = textOffsetx, width=3, validate = "key", validatecommand = (intValidator, "%P"))
@@ -259,6 +267,7 @@ textOffsetxEntry = tk.Entry(textOffsetBox, textvariable = textOffsetx, width=3, 
 textOffsety = tk.StringVar(value = dialogueGenerator.yoffset)
 textOffsetyEntry = tk.Entry(textOffsetBox, textvariable = textOffsety, width=3, validate = "key", validatecommand = (intValidator, "%P"))
 
+#-------------------------------------------------------------------------------
 #ANCHOR animation frame
 animationFrame = tk.Frame(generalOptionsFrame, **frameSettings)
 animationLabel = tk.Label(animationFrame, text="Animation timing settings")
@@ -307,16 +316,10 @@ portraitDelayLabel = tk.Label(animationFrame, text="Number of frames for portrai
 portraitDelayEntry = tk.Entry(animationFrame, width=2)
 portraitDelayEntry.insert(tk.END, "4")
 
-# Save and load some settings
-saveButtonBox = tk.Frame(generalOptionsFrame)
-loadSettingsButton = tk.Button(saveButtonBox, text= "load settings", command = loadSettings, pady = 3, padx = 5, bg = "darkblue", fg = "gold")
-saveSettingsButton = tk.Button(saveButtonBox, text= "save settings", command = saveSettings, pady = 3, padx = 5, bg = "darkblue", fg = "gold")
-
-
 #-------------------------------------------------------------------------------
 #ANCHOR Portrait settings
 
-portraitFrame = tk.Frame(portraitFontOptionsFrame, **frameSettings)
+portraitFrame = tk.Frame(generalOptionsFrame, **frameSettings)
 portraitHeader = tk.Label(portraitFrame, text="Portrait options:")
 
 useImageCheckbox = tk.Checkbutton(portraitFrame, text="Use portrait", variable = useImageVar)
@@ -325,8 +328,8 @@ useImageVar.trace('w', setPathActiveFunction)
 # Path entry
 pathRequirementMessage = tk.Message(portraitFrame, text = """Portrait path:
 - File must be a png file.
-- File name must end with a number containing what frame it is.
-- Only having frame 1 will disable animation.""", width = 400)
+- File names must end with a number
+- The amount of frames is decided by the file name number.""", width = 400)
 pathBox = tk.Frame(portraitFrame)
 
 def getpu():
@@ -484,23 +487,12 @@ saveFontButton = tk.Button(dataFontFrame, text = "Apply & save to file", command
 print("elements initialized")
 #-------------------------------------------------------------------------------
 
-# App layout
-appHeader.grid(row = 0, column = 0)
-
-# Options
-generalOptionsFrame.grid(row=1, column=1)
-optionHeader.grid(row = 0)
-
-# Text color
-colorButton.grid(row = 1)
-
-textOffsetLabel.grid(row = 6, column = 0)
-textOffsetBox.grid(row = 7, column = 0)
-textOffsetxEntry.grid(row = 0, column = 0)
-textOffsetyEntry.grid(row = 0, column = 1)
+#ANCHOR general settings frame alignment
+# Main options
+generalOptionsFrame.grid(row=0, column=1)
 
 # Animation frame
-animationFrame.grid(row=8)
+animationFrame.grid(row=0, sticky=tk.W)
 animationLabel.grid(row=0)
 
 # Frame delay
@@ -527,37 +519,16 @@ charDelayDefaultMessage.grid(row = 7, column = 0)
 portraitDelayLabel.grid(row = 8)
 portraitDelayEntry.grid(row = 9)
 
-#ANCHOR Main save button
-saveButtonBox.grid(row=9, column=0)
-saveSettingsButton.grid(row=0, column=0)
-loadSettingsButton.grid(row=0, column=1)
 
-# Textbox content
-contentFrame.grid(row=1, column = 0)
-contentHeader.grid(row = 0)
+# Textbox options frame
+portraitFrame.grid(row=1, sticky=tk.W)
 
-# Data entry frame
-entryFrame.grid(row = 1, column=0)
+# Sprite present checkbox
+useImageCheckbox.grid(row = 0)
 
-portraitPreviewObj.grid(row = 0, column=0)
-
-# Text entry field
-textEntry.grid(row=0, column = 1)
-
-# Asset dropdowns
-
-assetMenu.grid(row = 2, column = 0)
-
-# Background selector dropdown
-bgSelectorLabel.grid(row = 0, column=1)
-bgSelectorDropdown.grid(row = 1, column=1)
-
-# All checkboxes
-checkboxes.grid(row = 4, column = 0)
-# Three line dialogue box checkbox
-threeLineCheckbox.grid(row = 0, column = 0)
-# Auto-open checkbox
-autoOpenCheckbox.grid(row = 0, column = 1)
+# Sprite select field
+pathRequirementMessage.grid(row = 1, column = 0)
+pathBox.grid(row = 2, column = 0)
 
 pathInline1.grid(row = 0, column = 0)
 pathUniverseDropdown.grid(row = 0, column = 1)
@@ -567,27 +538,6 @@ pathInline3.grid(row = 0, column = 4)
 pathExpressionDropdown.grid(row = 0, column = 5)
 pathInline4.grid(row = 0, column = 6)
 
-
-# File name
-fileNameLabel.grid(row = 8, column = 0)
-fileNameEntry.grid(row = 9, column = 0)
-
-# Create button
-createAnimation.grid(row = 10)
-
-# Font and portrait frames
-portraitFontOptionsFrame.grid(row = 1, column = 2)
-
-# Portrait stuffs
-portraitFrame.grid(row = 0)
-
-# Sprite present checkbox
-useImageCheckbox.grid(row = 0)
-
-# Sprite select field
-pathRequirementMessage.grid(row = 1, column = 0)
-pathBox.grid(row = 2, column = 0)
-
 portraitScaleLabel.grid(row=3)
 portraitScaleField.grid(row=4)
 
@@ -596,8 +546,65 @@ portraitOffsetBox.grid(row = 6, column = 0)
 portraitOffsetxEntry.grid(row = 0, column = 0)
 portraitOffsetyEntry.grid(row = 0, column = 1)
 
+
+#ANCHOR content box alignment
+# Textbox content
+contentFrame.grid(row=0, column = 0)
+contentHeader.grid(row = 0)
+
+# Data entry frame
+entryFrame.grid(row = 1, column=0)
+
+# Portrait preview
+portraitPreviewObj.grid(row = 0, column=0)
+
+# Text entry field
+textEntry.grid(row=0, column = 1)
+
+# Asset dropdowns
+assetMenu.grid(row = 2, column = 0)
+
+# Background selector dropdown
+bgSelectorLabel.grid(row = 0, column=0)
+bgSelectorDropdown.grid(row = 1, column=0)
+
+# Auto open checkbox
+autoOpenCheckbox.grid(row = 4, column = 0)
+
+# File name
+fileNameLabel.grid(row = 8, column = 0)
+fileNameEntry.grid(row = 9, column = 0)
+
+# Create button
+createAnimation.grid(row = 10)
+
+#ANCHOR extra settings frame alignment
+
+portraitFontOptionsFrame.grid(row=0, column=2)
+
+saveButtonBox.grid(row=0, sticky=tk.W)
+saveSettingsButton.grid(row=0, column=0)
+loadSettingsButton.grid(row=0, column=1)
+
+# Portrait stuffs
+textboxOptionsFrame.grid(row=1, sticky=tk.W)
+
+textboxOptionHeader.grid(row=0)
+
+# three line checkbox
+threeLineCheckbox.grid(row = 1, column = 0)
+
+# Text color
+colorButton.grid(row = 2)
+
+textOffsetLabel.grid(row = 3, column = 0)
+
+textOffsetBox.grid(row = 4, column = 0)
+textOffsetxEntry.grid(row = 0, column = 0)
+textOffsetyEntry.grid(row = 0, column = 1)
+
 # Sound stuffs
-soundFrame.grid(row=1)
+soundFrame.grid(row=2, sticky=tk.W)
 soundHeader.grid(row=0)
 useSoundCheckbox.grid(row=1)
 
@@ -605,7 +612,7 @@ blipSelectorLabel.grid(row=2)
 blipSelectorDropdown.grid(row=3)
 
 # Font stuffs
-fontFrame.grid(row = 2)
+fontFrame.grid(row=3, sticky=tk.W)
 
 # Font selector dropdown
 fontSelectorLabel.grid(row=1, column = 0)
