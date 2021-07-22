@@ -8,8 +8,9 @@ fonts = {}
 
 def loadFontData():
 	loadeddata = {}
-	if path.isfile("fontData.json"):
-		with open("fontData.json", "r") as fontData:
+	pathString = path.join("data", "fontData.json")
+	if path.isfile(pathString):
+		with open(pathString, "r") as fontData:
 			loadeddata = json.load(fontData)
 	for filename in listdir("fonts/"):
 		# Only valid font files

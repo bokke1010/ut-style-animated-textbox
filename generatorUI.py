@@ -27,7 +27,7 @@ print("dialogue generator imported correctly")
 
 root = tk.Tk()
 root.title("Animated textbox generator")
-root.iconbitmap("icon.ico")
+root.iconbitmap("data/icon.ico")
 print("tkinter window created")
 
 #ANCHOR general function and data registration
@@ -78,12 +78,13 @@ def saveSettings():
 		"specialDelays": dialogueGenerator.delays
 	}
 
-	with open("generator_settings.json", mode="w") as settingFile:
+	with open(path.join("data", "generator_settings.json"), mode="w") as settingFile:
 		json.dump(settings, settingFile)
 
 def loadSettings():
-	if path.isfile("generator_settings.json"):
-		with open("generator_settings.json", "r") as settingFile:
+	pathString = path.join("data", "generator_settings.json")
+	if path.isfile(pathString):
+		with open(pathString) as settingFile:
 			settings = json.load(settingFile)
 
 		if "animationDelay" in settings:
@@ -477,8 +478,8 @@ def getFontFunction():
 
 def saveFontData():
 	setFontFunction()
-	print("Saving font settings!")
-	with open("fontData.json", mode="w") as jsonFile:
+	pathString = path.join("data", "fontData.json")
+	with open(pathString, mode="w") as jsonFile:
 		json.dump(dialogueGenerator.fonts, jsonFile)
 
 # Display font data

@@ -17,6 +17,8 @@ fonts/*
 !fonts/default.otf
 blips/*
 !blips/example.wav
+data/*
+!data/icon.ico
 sheets/
 package/
 offlineDist.zip
