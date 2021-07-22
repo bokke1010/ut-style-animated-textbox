@@ -135,8 +135,8 @@ def create(text: str,
 				frames.append(portraitFrame)
 
 	# Save animation
-	frames[0].save(f"{outputFileName}.{fileFormat}", save_all = True, append_images = frames[1:], duration = frametime)
+	frames[0].save(path.join("output", f"{outputFileName}.{fileFormat}"), save_all = True, append_images = frames[1:], duration = frametime)
 	if generateAudio:
-		blipTrack.export(outputFileName+".mp3",
+		blipTrack.export(path.join("output", f"{outputFileName}.mp3"),
 						 format="mp3",
 						 bitrate="128k")

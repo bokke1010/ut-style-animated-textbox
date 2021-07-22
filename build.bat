@@ -1,0 +1,1 @@
+pyinstaller --clean --add-data "../buildtools/ffmpeg/*;./ffmpeg/" --add-data "./blips/*;./blips/" --add-data "./faces/*;./faces/" --add-data "./backgrounds/*;./backgrounds/" --add-data "./fonts/*;./fonts/" --add-data "icon.ico;icon.ico" generatorUI.py

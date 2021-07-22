@@ -146,12 +146,13 @@ def createFunction():
 							 fileFormat=fileFormat)
 
 	if (autoOpenVar.get() == 1):
+		pathString = path.join("output", f"{filename}.{fileFormat}")
 		if platform == "win32": # Only windows was tested
-			system(f"start {filename}.{fileFormat}")
+			system(f"start {pathString}")
 		elif platform == "darwin": # Mac OS?
-			system(f"open {filename}.{fileFormat}")
+			system(f"open {pathString}")
 		else: # Linux?
-			system(f"xdg-open {filename}.{fileFormat}")
+			system(f"xdg-open {pathString}")
 
 #-------------------------------------------------------------------------------
 #ANCHOR Visual entry environment

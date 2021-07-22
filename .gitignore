@@ -7,6 +7,10 @@ __pycache__/
 requirements.txt
 boty.py
 
+build/
+dist/
+*.spec
+
 faces/*
 !faces/example/
 fonts/*
@@ -16,8 +20,7 @@ blips/*
 sheets/
 package/
 offlineDist.zip
-*.gif
-*.mp3
+output/
 test.py
 portrait.png
 generator_settings.json
