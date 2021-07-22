@@ -147,7 +147,16 @@ def createFunction():
 							 fileFormat=fileFormat)
 
 	if (autoOpenVar.get() == 1):
-		pathString = path.join("output", f"{filename}.{fileFormat}")
+		filenameExt = f"{filename}"
+		if fileFormat == "gif animation":
+			filenameExt += ".gif"
+		elif fileFormat == "animated png":
+			filenameExt += ".apng"
+		elif fileFormat == "png sequence":
+			filenameExt += "000.png"
+		elif fileFormat == "final frame png":
+			filenameExt += ".png"
+		pathString = path.join("output", filenameExt)
 		if platform == "win32": # Only windows was tested
 			system(f"start {pathString}")
 		elif platform == "darwin": # Mac OS?
@@ -230,8 +239,8 @@ fileNameEntry = tk.Entry(contentFrame)
 fileNameEntry.insert(0, "outputDialogue")
 
 fileFormatLabel = tk.Label(contentFrame, text = "File format")
-fileFormatVar = tk.StringVar(value="gif")
-fileFormatDropdown = tk.OptionMenu(contentFrame, fileFormatVar, "gif", "apng")
+fileFormatVar = tk.StringVar(value="gif animation")
+fileFormatDropdown = tk.OptionMenu(contentFrame, fileFormatVar, "gif animation", "animated png", "png sequence", "final frame png")
 
 # Creation button
 createAnimation = tk.Button(contentFrame, text= "Create!", command = createFunction, pady = 5, padx = 15, bg = "black", fg = "gold")

@@ -72,8 +72,10 @@ def create(text: str,
 		background: str = "dialogue_box.png",
 		scalingFactor: int = 2,
 		blip_path: str = None,
-		fileFormat: str = "gif"
+		fileFormat: str = "gif animation"
 	):
+
+	#options: gif animation, animated png, png sequence, final frame png
 
 	frameCount = sum(delays[char] if char in delays else chardelay for char in text)
 
@@ -102,7 +104,8 @@ def create(text: str,
 
 	# Create frames
 	frames = []
-	for i in range(len(text)):
+	frameRange = range(len(text)) if fileFormat != "final frame png" else [len(text) - 1]
+	for i in frameRange:
 
 		# Get background
 		textFrame = bgImage.copy()
@@ -116,16 +119,19 @@ def create(text: str,
 
 		# Determine text delay
 		char = text[i]
-		chartime = chardelay
+		charframes = chardelay
 		if char in delays:
-			chartime = delays[char]
+			charframes = delays[char]
+		# Only generate a single frame if the format is single frame png.
+		if fileFormat == "final frame png":
+			charframes = 1
 
 		if generateAudio and char.isalnum():
 			blipTrack = blipTrack.overlay(blip, position=len(frames) * frametime)
 
 
 		# Add the required number of frames
-		for j in range(chartime):
+		for j in range(charframes):
 			# Draw portrait
 			if expression == None:
 				frames.append(textFrame)
@@ -136,7 +142,15 @@ def create(text: str,
 				frames.append(portraitFrame)
 
 	# Save animation
-	frames[0].save(path.join("output", f"{outputFileName}.{fileFormat}"), save_all = True, append_images = frames[1:], duration = frametime)
+	if fileFormat == "gif animation":
+		frames[0].save(path.join("output", f"{outputFileName}.gif"), save_all = True, append_images = frames[1:], duration = frametime)
+	elif fileFormat == "animated png":
+		frames[0].save(path.join("output", f"{outputFileName}.apng"), save_all = True, append_images = frames[1:], duration = frametime)
+	elif fileFormat == "png sequence":
+		for i, frame in enumerate(frames):
+			frame.save(path.join("output", f"{outputFileName}{i:03d}.png"))
+	elif fileFormat == "final frame png":
+		frames[0].save(path.join("output", f"{outputFileName}.png"))
 	if generateAudio:
 		blipTrack.export(path.join("output", f"{outputFileName}.mp3"),
 						 format="mp3",
