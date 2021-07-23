@@ -1,10 +1,21 @@
 from PIL import Image, ImageDraw, ImageFont
-from pydub import AudioSegment
+import pydub as pd
 from os import path
 from os import listdir
 import json
 
-AudioSegment.ffmpeg = path.abspath(path.join("ffmpeg", "ffmpeg.exe"))
+#DB
+# import logging
+
+# l = logging.getLogger("pydub.converter")
+# l.setLevel(logging.DEBUG)
+# l.addHandler(logging.StreamHandler())
+#DB
+
+# ffmpegPath = path.abspath("ffmpeg", "bin")
+ffmpegPath = path.abspath(path.join("ffmpeg", "bin", "ffmpeg.exe"))
+pd.AudioSegment.converter = ffmpegPath
+print(ffmpegPath)
 
 fonts = {}
 
@@ -101,8 +112,8 @@ def create(text: str,
 	# Setup audio
 	generateAudio = blip_path != None
 	if generateAudio:
-		blip = AudioSegment.from_file("blips/" + blip_path)
-		blipTrack = AudioSegment.silent(frametime * frameCount + len(blip))
+		blip = pd.AudioSegment.from_file(path.join("blips", blip_path))
+		blipTrack = pd.AudioSegment.silent(frametime * frameCount + len(blip))
 
 	# Create frames
 	frames = []
@@ -154,6 +165,6 @@ def create(text: str,
 	elif fileFormat == "final frame png":
 		frames[0].save(path.join("output", f"{outputFileName}.png"))
 	if generateAudio:
-		blipTrack.export(path.join("output", f"{outputFileName}.mp3"),
-						 format="mp3",
-						 bitrate="128k")
+		audioPath = path.join("output", f"{outputFileName}.wav")
+		# print(audioPath)
+		blipTrack.export(audioPath, format="mp3", bitrate="128k")
