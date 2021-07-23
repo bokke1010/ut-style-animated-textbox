@@ -4,6 +4,8 @@ from os import path
 from os import listdir
 import json
 
+AudioSegment.ffmpeg = path.abspath(path.join("ffmpeg", "ffmpeg.exe"))
+
 fonts = {}
 
 def loadFontData():

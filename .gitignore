@@ -9,6 +9,7 @@ boty.py
 
 build/
 dist/
+ffmpeg/
 *.spec
 
 faces/*
