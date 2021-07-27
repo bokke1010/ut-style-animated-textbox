@@ -1,5 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont
-import pydub as pd
+from pydub import AudioSegment
 from os import path
 from os import listdir
 import json
@@ -13,9 +13,11 @@ import json
 #DB
 
 # ffmpegPath = path.abspath("ffmpeg", "bin")
-ffmpegPath = path.abspath(path.join("ffmpeg", "bin", "ffmpeg.exe"))
-pd.AudioSegment.converter = ffmpegPath
-print(ffmpegPath)
+# ffmpegPath = path.abspath(path.join("ffmpeg", "bin", "ffmpeg.exe"))
+# ffprobePath = path.abspath(path.join("ffmpeg", "bin", "ffprobe.exe"))
+# AudioSegment.converter = ffmpegPath
+# AudioSegment.ffmpeg = ffmpegPath
+# AudioSegment.ffprobe = ffprobePath
 
 fonts = {}
 
@@ -85,6 +87,7 @@ def create(text: str,
 		background: str = "dialogue_box.png",
 		scalingFactor: int = 2,
 		blip_path: str = None,
+		blip_on_punct: bool = False,
 		fileFormat: str = "gif animation"
 	):
 
@@ -112,8 +115,8 @@ def create(text: str,
 	# Setup audio
 	generateAudio = blip_path != None
 	if generateAudio:
-		blip = pd.AudioSegment.from_file(path.join("blips", blip_path))
-		blipTrack = pd.AudioSegment.silent(frametime * frameCount + len(blip))
+		blip = AudioSegment.from_file(path.join("blips", blip_path))
+		blipTrack = AudioSegment.silent(frametime * frameCount + len(blip))
 
 	# Create frames
 	frames = []
@@ -139,7 +142,7 @@ def create(text: str,
 		if fileFormat == "final frame png":
 			charframes = 1
 
-		if generateAudio and char.isalnum():
+		if generateAudio and (char.isalnum() or (blip_on_punct and char in ".,:;?!~@#$%^&*()-=_+[]|'\"")):
 			blipTrack = blipTrack.overlay(blip, position=len(frames) * frametime)
 
 
@@ -164,7 +167,7 @@ def create(text: str,
 			frame.save(path.join("output", f"{outputFileName}{i:03d}.png"))
 	elif fileFormat == "final frame png":
 		frames[0].save(path.join("output", f"{outputFileName}.png"))
-	if generateAudio:
-		audioPath = path.join("output", f"{outputFileName}.wav")
+	if generateAudio and fileFormat != "final frame png":
+		audioPath = path.join("output", f"{outputFileName}.mp3")
 		# print(audioPath)
 		blipTrack.export(audioPath, format="mp3", bitrate="128k")

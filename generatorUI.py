@@ -20,10 +20,10 @@ print("dialogue generator imported correctly")
 
 #TODO:
 # Add offset preview
-# Fix line spacing being dependant on character height?
-# - See ImageDraw.multiline_text. - possibly fixed? no longer able to reproduce
 # Two-frame mode
-# Add mp3 file support to UI
+# add the mp4 merger - "ffmpeg -stream_loop 0 -i outputDialogue.gif -i outputDialogue.mp3 -map 0 -map 1:a -c:v libx265 -crf 26 -preset medium -pix_fmt yuv420p -c:a aac -movflags +faststart output.mp4"
+# add a way to play sound for other characters (eg. ". . .")
+# shaking letters - seperate finalized gif with all the text shaking for looping
 
 root = tk.Tk()
 root.title("Animated textbox generator")
@@ -56,6 +56,8 @@ portraitFontOptionsFrame = tk.Frame(root)
 
 useImageVar = tk.IntVar(value=1)
 useSoundVar = tk.IntVar(value=0)
+soundDoPunctVar = tk.IntVar(value=0)
+videoMergeVar = tk.IntVar(value=0)
 
 pathUniverse = tk.StringVar()
 pathCharacter = tk.StringVar()
@@ -134,9 +136,10 @@ def createFunction():
 	if useImageVar.get() == 1:
 		expression = pathExpression.get()
 
-	blip = None
+	blip, puncBlip = None, False
 	if useSoundVar.get() == 1:
 		blip = blipSelector.get()
+		puncBlip = soundDoPunctVar.get() == 1
 
 	dialogueGenerator.create(textboxcontent,
 							 pathUniverse.get(), pathCharacter.get(), expression,
@@ -144,6 +147,7 @@ def createFunction():
 							 background=bgSelector.get(),
 							 scalingFactor=scaleFactor,
 							 blip_path=blip,
+							 blip_on_punct=puncBlip,
 							 fileFormat=fileFormat)
 
 	if (autoOpenVar.get() == 1):
@@ -163,6 +167,9 @@ def createFunction():
 			system(f"open {pathString}")
 		else: # Linux?
 			system(f"xdg-open {pathString}")
+	if (videoMergeVar.get() == 1 and blip != None and fileFormat == "gif animation"):
+		vpath, apath, opath = path.join("output", filename + ".gif"), path.join("output", filename + ".mp3"), path.join("output", filename + ".mp4")
+		system(f"ffmpeg -y -stream_loop 0 -i \"{vpath}\" -i \"{apath}\" -map 0 -map 1:a -c:v libx264 -crf 26 -preset medium -pix_fmt yuv420p -c:a aac -movflags +faststart \"{opath}\"")
 
 #-------------------------------------------------------------------------------
 #ANCHOR Visual entry environment
@@ -426,6 +433,7 @@ soundFrame = tk.Frame(portraitFontOptionsFrame, **frameSettings)
 soundHeader = tk.Label(soundFrame, text="Sound options:")
 
 useSoundCheckbox = tk.Checkbutton(soundFrame, text="Use sounds", variable = useSoundVar)
+punctuationSoundCheckbox = tk.Checkbutton(soundFrame, text="Add sound to punctuation", variable = soundDoPunctVar)
 
 def getBlips():
 	return dialogueGenerator.blips
@@ -434,6 +442,8 @@ blipSelectorOptions = getBlips()
 blipSelector = tk.StringVar()
 blipSelectorLabel = tk.Label(soundFrame, text = "Sound blip:")
 blipSelectorDropdown = ttk.OptionMenu(soundFrame, blipSelector, blipSelectorOptions[0], *blipSelectorOptions)
+
+mergeVideoCheckbox = tk.Checkbutton(soundFrame, text="Merge into mp4 (gif anim only)", variable=videoMergeVar)
 
 #-------------------------------------------------------------------------------
 #ANCHOR Font settings
@@ -628,9 +638,12 @@ textOffsetyEntry.grid(row = 0, column = 1)
 soundFrame.grid(row=2, sticky=tk.W)
 soundHeader.grid(row=0)
 useSoundCheckbox.grid(row=1)
+punctuationSoundCheckbox.grid(row=2)
 
-blipSelectorLabel.grid(row=2)
-blipSelectorDropdown.grid(row=3)
+blipSelectorLabel.grid(row=3)
+blipSelectorDropdown.grid(row=4)
+
+mergeVideoCheckbox.grid(row=5)
 
 # Font stuffs
 fontFrame.grid(row=3, sticky=tk.W)

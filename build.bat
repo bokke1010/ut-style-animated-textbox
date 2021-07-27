@@ -1,1 +1,3 @@
-pyinstaller --clean --add-data "./ffmpeg/*;./ffmpeg/" --add-data "./blips/example.wav;./blips/" --add-data "./faces/example/exampleCharacter;./faces/example/exampleCharacter/" --add-data "./backgrounds/dialogue_box.png;./backgrounds/" --add-data "./fonts/default.otf;./fonts/" --add-data "./output/;./output/"  --add-data "./data/icon.ico;./data/" generatorUI.py
+pyinstaller --clean --add-data "./ffmpeg/*;./ffmpeg/" --add-data "./blips/examplemp3.mp3;./blips/"  --add-data "./faces/example/exampleCharacter;./faces/example/exampleCharacter/" --add-data "./backgrounds/dialogue_box.png;./backgrounds/" --add-data "./fonts/default.otf;./fonts/" --add-data "./output/;./output/"  --add-data "./data/icon.ico;./data/" generatorUI.py
+REM after use, put the ffmpeg executables in a subfolder called \bin\
+REM also create a empty folder called output in (dist\output\)
